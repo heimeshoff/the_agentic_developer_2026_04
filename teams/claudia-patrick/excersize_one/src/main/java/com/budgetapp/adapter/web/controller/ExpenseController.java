@@ -1,5 +1,9 @@
-package com.budgetapp.expense;
+package com.budgetapp.adapter.web.controller;
 
+import com.budgetapp.core.domain.model.Expense;
+import com.budgetapp.core.domain.model.ExpenseCategory;
+import com.budgetapp.core.service.ExpenseService;
+import com.budgetapp.core.service.RecurringExpenseService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -25,10 +29,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/expenses")
 public class ExpenseController {
 
-    private final ExpenseRepository repository;
+    private final ExpenseService expenseService;
+    private final RecurringExpenseService recurringExpenseService;
 
-    public ExpenseController(ExpenseRepository repository) {
-        this.repository = repository;
+    public ExpenseController(ExpenseService expenseService,
+                             RecurringExpenseService recurringExpenseService) {
+        this.expenseService = expenseService;
+        this.recurringExpenseService = recurringExpenseService;
     }
 
     @GetMapping
@@ -37,20 +44,30 @@ public class ExpenseController {
         LocalDate start = currentMonth.atDay(1);
         LocalDate end = currentMonth.atEndOfMonth();
 
-        List<Expense> monthlyExpenses = repository.findByDateBetweenOrderByDateDescIdDesc(start, end);
+        List<Expense> monthlyExpenses = expenseService.getMonthlyExpenses(start, end);
         BigDecimal totalSpent = monthlyExpenses.stream()
-                .map(Expense::getAmount)
+                .map(Expense::amount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Map<String, BigDecimal> categoryTotals = buildCategoryTotals(start, end);
-        Map<String, Integer> categoryPercents = buildCategoryPercents(categoryTotals, totalSpent);
+        Map<ExpenseCategory, BigDecimal> categoryTotals = expenseService.getCategoryTotals(start, end);
+        Map<String, BigDecimal> displayTotals = new LinkedHashMap<>();
+        Map<String, Integer> categoryPercents = new LinkedHashMap<>();
+
+        for (Map.Entry<ExpenseCategory, BigDecimal> entry : categoryTotals.entrySet()) {
+            displayTotals.put(entry.getKey().getDisplayName(), entry.getValue());
+            if (totalSpent.compareTo(BigDecimal.ZERO) > 0) {
+                int pct = entry.getValue().multiply(BigDecimal.valueOf(100L))
+                        .divide(totalSpent, 0, RoundingMode.HALF_UP).intValue();
+                categoryPercents.put(entry.getKey().getDisplayName(), pct);
+            }
+        }
 
         model.addAttribute("expenses", monthlyExpenses);
         model.addAttribute("totalSpent", totalSpent);
         model.addAttribute("currentMonth", currentMonth.getMonth().name().charAt(0)
                 + currentMonth.getMonth().name().substring(1).toLowerCase());
         model.addAttribute("currentYear", currentMonth.getYear());
-        model.addAttribute("categoryTotals", categoryTotals);
+        model.addAttribute("categoryTotals", displayTotals);
         model.addAttribute("categoryPercents", categoryPercents);
         model.addAttribute("categories", ExpenseCategory.values());
 
@@ -69,9 +86,9 @@ public class ExpenseController {
             LocalDate start = currentMonth.atDay(1);
             LocalDate end = currentMonth.atEndOfMonth();
 
-            List<Expense> monthlyExpenses = repository.findByDateBetweenOrderByDateDescIdDesc(start, end);
+            List<Expense> monthlyExpenses = expenseService.getMonthlyExpenses(start, end);
             BigDecimal totalSpent = monthlyExpenses.stream()
-                    .map(Expense::getAmount)
+                    .map(Expense::amount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             model.addAttribute("expenses", monthlyExpenses);
@@ -79,20 +96,30 @@ public class ExpenseController {
             model.addAttribute("currentMonth", currentMonth.getMonth().name().charAt(0)
                     + currentMonth.getMonth().name().substring(1).toLowerCase());
             model.addAttribute("currentYear", currentMonth.getYear());
-            Map<String, BigDecimal> catTotals = buildCategoryTotals(start, end);
-            model.addAttribute("categoryTotals", catTotals);
-            model.addAttribute("categoryPercents", buildCategoryPercents(catTotals, totalSpent));
+
+            Map<ExpenseCategory, BigDecimal> categoryTotals = expenseService.getCategoryTotals(start, end);
+            Map<String, BigDecimal> displayTotals = new LinkedHashMap<>();
+            Map<String, Integer> categoryPercents = new LinkedHashMap<>();
+            for (Map.Entry<ExpenseCategory, BigDecimal> entry : categoryTotals.entrySet()) {
+                displayTotals.put(entry.getKey().getDisplayName(), entry.getValue());
+                if (totalSpent.compareTo(BigDecimal.ZERO) > 0) {
+                    int pct = entry.getValue().multiply(BigDecimal.valueOf(100L))
+                            .divide(totalSpent, 0, RoundingMode.HALF_UP).intValue();
+                    categoryPercents.put(entry.getKey().getDisplayName(), pct);
+                }
+            }
+            model.addAttribute("categoryTotals", displayTotals);
+            model.addAttribute("categoryPercents", categoryPercents);
             model.addAttribute("categories", ExpenseCategory.values());
             return "expenses";
         }
 
-        Expense expense = new Expense(
+        expenseService.addExpense(
                 expenseForm.getDescription(),
                 expenseForm.getAmount(),
                 expenseForm.getDate(),
                 expenseForm.getCategory()
         );
-        repository.save(expense);
 
         redirectAttributes.addFlashAttribute("success", "Expense added!");
         return "redirect:/expenses";
@@ -100,31 +127,20 @@ public class ExpenseController {
 
     @PostMapping("/{id}/delete")
     public String deleteExpense(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        repository.deleteById(id);
+        expenseService.deleteExpense(id);
         redirectAttributes.addFlashAttribute("success", "Expense deleted.");
         return "redirect:/expenses";
     }
 
-    private Map<String, Integer> buildCategoryPercents(Map<String, BigDecimal> totals, BigDecimal totalSpent) {
-        Map<String, Integer> percents = new LinkedHashMap<>();
-        if (totalSpent.compareTo(BigDecimal.ZERO) > 0) {
-            for (Map.Entry<String, BigDecimal> entry : totals.entrySet()) {
-                int pct = entry.getValue().multiply(BigDecimal.valueOf(100L))
-                        .divide(totalSpent, 0, RoundingMode.HALF_UP).intValue();
-                percents.put(entry.getKey(), pct);
+    @PostMapping("/{id}/skip")
+    public String skipRecurringExpense(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        expenseService.findById(id).ifPresent(expense -> {
+            if (expense.recurringExpenseId() != null) {
+                recurringExpenseService.skipOccurrence(expense.recurringExpenseId(), expense.date());
+                redirectAttributes.addFlashAttribute("success", "Occurrence skipped.");
             }
-        }
-        return percents;
-    }
-
-    private Map<String, BigDecimal> buildCategoryTotals(LocalDate start, LocalDate end) {
-        Map<String, BigDecimal> totals = new LinkedHashMap<>();
-        for (Object[] row : repository.sumByCategory(start, end)) {
-            ExpenseCategory cat = (ExpenseCategory) row[0];
-            BigDecimal sum = (BigDecimal) row[1];
-            totals.put(cat.getDisplayName(), sum);
-        }
-        return totals;
+        });
+        return "redirect:/expenses";
     }
 
     public static class ExpenseForm {
@@ -143,36 +159,13 @@ public class ExpenseController {
         @NotNull(message = "Category is required")
         private ExpenseCategory category;
 
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public BigDecimal getAmount() {
-            return amount;
-        }
-
-        public void setAmount(BigDecimal amount) {
-            this.amount = amount;
-        }
-
-        public LocalDate getDate() {
-            return date;
-        }
-
-        public void setDate(LocalDate date) {
-            this.date = date;
-        }
-
-        public ExpenseCategory getCategory() {
-            return category;
-        }
-
-        public void setCategory(ExpenseCategory category) {
-            this.category = category;
-        }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public BigDecimal getAmount() { return amount; }
+        public void setAmount(BigDecimal amount) { this.amount = amount; }
+        public LocalDate getDate() { return date; }
+        public void setDate(LocalDate date) { this.date = date; }
+        public ExpenseCategory getCategory() { return category; }
+        public void setCategory(ExpenseCategory category) { this.category = category; }
     }
 }

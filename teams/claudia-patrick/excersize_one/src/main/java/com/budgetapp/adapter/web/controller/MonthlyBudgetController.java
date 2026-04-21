@@ -1,5 +1,7 @@
-package com.budgetapp.budget;
+package com.budgetapp.adapter.web.controller;
 
+import com.budgetapp.core.domain.model.MonthlyBudget;
+import com.budgetapp.core.service.MonthlyBudgetService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -20,29 +22,27 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/budget")
 public class MonthlyBudgetController {
 
-    private final MonthlyBudgetRepository repository;
+    private final MonthlyBudgetService budgetService;
 
-    public MonthlyBudgetController(MonthlyBudgetRepository repository) {
-        this.repository = repository;
+    public MonthlyBudgetController(MonthlyBudgetService budgetService) {
+        this.budgetService = budgetService;
     }
 
     @GetMapping
     public String budgetPage(Model model) {
         LocalDate now = LocalDate.now();
-        Optional<MonthlyBudget> currentBudget = repository.findByYearAndMonth(now.getYear(), now.getMonthValue());
+        Optional<MonthlyBudget> currentBudget = budgetService.findByYearAndMonth(now.getYear(), now.getMonthValue());
 
         model.addAttribute("currentBudget", currentBudget.orElse(null));
         model.addAttribute("currentMonth", now.getMonth().name().charAt(0)
                 + now.getMonth().name().substring(1).toLowerCase());
         model.addAttribute("currentYear", now.getYear());
-        model.addAttribute("budgets", repository.findAllByOrderByYearDescMonthDesc());
+        model.addAttribute("budgets", budgetService.findAll());
 
         BudgetForm form = new BudgetForm();
         form.setYear(now.getYear());
         form.setMonth(now.getMonthValue());
-        if (currentBudget.isPresent()) {
-            form.setAmount(currentBudget.get().getAmount());
-        }
+        currentBudget.ifPresent(b -> form.setAmount(b.amount()));
         model.addAttribute("budgetForm", form);
 
         return "budget";
@@ -53,22 +53,16 @@ public class MonthlyBudgetController {
                              Model model, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             LocalDate now = LocalDate.now();
-            Optional<MonthlyBudget> currentBudget = repository.findByYearAndMonth(now.getYear(), now.getMonthValue());
+            Optional<MonthlyBudget> currentBudget = budgetService.findByYearAndMonth(now.getYear(), now.getMonthValue());
             model.addAttribute("currentBudget", currentBudget.orElse(null));
             model.addAttribute("currentMonth", now.getMonth().name().charAt(0)
                     + now.getMonth().name().substring(1).toLowerCase());
             model.addAttribute("currentYear", now.getYear());
-            model.addAttribute("budgets", repository.findAllByOrderByYearDescMonthDesc());
+            model.addAttribute("budgets", budgetService.findAll());
             return "budget";
         }
 
-        Optional<MonthlyBudget> existing = repository.findByYearAndMonth(budgetForm.getYear(), budgetForm.getMonth());
-        if (existing.isPresent()) {
-            existing.get().setAmount(budgetForm.getAmount());
-            repository.save(existing.get());
-        } else {
-            repository.save(new MonthlyBudget(budgetForm.getYear(), budgetForm.getMonth(), budgetForm.getAmount()));
-        }
+        budgetService.save(budgetForm.getYear(), budgetForm.getMonth(), budgetForm.getAmount());
 
         redirectAttributes.addFlashAttribute("success", "Budget saved successfully!");
         return "redirect:/budget";
@@ -90,28 +84,11 @@ public class MonthlyBudgetController {
         @DecimalMin(value = "0.00", message = "Amount must be zero or positive")
         private BigDecimal amount;
 
-        public Integer getYear() {
-            return year;
-        }
-
-        public void setYear(Integer year) {
-            this.year = year;
-        }
-
-        public Integer getMonth() {
-            return month;
-        }
-
-        public void setMonth(Integer month) {
-            this.month = month;
-        }
-
-        public BigDecimal getAmount() {
-            return amount;
-        }
-
-        public void setAmount(BigDecimal amount) {
-            this.amount = amount;
-        }
+        public Integer getYear() { return year; }
+        public void setYear(Integer year) { this.year = year; }
+        public Integer getMonth() { return month; }
+        public void setMonth(Integer month) { this.month = month; }
+        public BigDecimal getAmount() { return amount; }
+        public void setAmount(BigDecimal amount) { this.amount = amount; }
     }
 }

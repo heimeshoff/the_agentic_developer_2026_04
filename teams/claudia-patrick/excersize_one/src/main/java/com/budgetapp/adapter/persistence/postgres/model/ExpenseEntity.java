@@ -1,5 +1,6 @@
-package com.budgetapp.expense;
+package com.budgetapp.adapter.persistence.postgres.model;
 
+import com.budgetapp.core.domain.model.ExpenseCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "expenses")
-public class Expense {
+public class ExpenseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,49 +33,25 @@ public class Expense {
     @Column(nullable = false)
     private ExpenseCategory category;
 
-    protected Expense() {
+    private Long recurringExpenseId;
+
+    protected ExpenseEntity() {
     }
 
-    public Expense(String description, BigDecimal amount, LocalDate date, ExpenseCategory category) {
+    public ExpenseEntity(Long id, String description, BigDecimal amount, LocalDate date,
+                         ExpenseCategory category, Long recurringExpenseId) {
+        this.id = id;
         this.description = description;
         this.amount = amount;
         this.date = date;
         this.category = category;
+        this.recurringExpenseId = recurringExpenseId;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public ExpenseCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(ExpenseCategory category) {
-        this.category = category;
-    }
+    public Long getId() { return id; }
+    public String getDescription() { return description; }
+    public BigDecimal getAmount() { return amount; }
+    public LocalDate getDate() { return date; }
+    public ExpenseCategory getCategory() { return category; }
+    public Long getRecurringExpenseId() { return recurringExpenseId; }
 }

@@ -11,6 +11,14 @@ This application is a Java / Spring Boot app that is responsible for managing pe
 * Thymeleaf for UI
 * Spring Security
 
+### Unit Tests
+
+Use the java-unit-test skill to learn how to write unit tests.
+
+### Architecture 
+
+Use the java-hexagonal-architecture skill to learn about the architecture
+
 ## Features
 
 * Setting a monthly budget

@@ -1,4 +1,4 @@
-package com.budgetapp.budget;
+package com.budgetapp.adapter.persistence.postgres.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "monthly_budgets", uniqueConstraints = @UniqueConstraint(columnNames = {"year", "month"}))
-public class MonthlyBudget {
+public class MonthlyBudgetEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,45 +26,20 @@ public class MonthlyBudget {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    protected MonthlyBudget() {
+    protected MonthlyBudgetEntity() {
     }
 
-    public MonthlyBudget(int year, int month, BigDecimal amount) {
+    public MonthlyBudgetEntity(Long id, int year, int month, BigDecimal amount) {
+        this.id = id;
         this.year = year;
         this.month = month;
         this.amount = amount;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public int getYear() { return year; }
+    public int getMonth() { return month; }
+    public BigDecimal getAmount() { return amount; }
 
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public int getMonth() {
-        return month;
-    }
-
-    public void setMonth(int month) {
-        this.month = month;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getMonthName() {
-        return java.time.Month.of(month).name().charAt(0)
-                + java.time.Month.of(month).name().substring(1).toLowerCase();
-    }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
 }

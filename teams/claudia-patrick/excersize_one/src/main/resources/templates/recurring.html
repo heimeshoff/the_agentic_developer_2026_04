@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expenses - Budget App</title>
+    <title>Recurring Expenses - Budget App</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
@@ -16,10 +16,6 @@
 
         .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .card h2 { margin-bottom: 1rem; font-size: 1.2rem; }
-
-        .total-banner { text-align: center; padding: 2rem; }
-        .total-banner .amount { font-size: 2.5rem; font-weight: 700; color: #c62828; }
-        .total-banner .label { color: #666; font-size: 0.9rem; margin-top: 0.25rem; }
 
         .success { background: #e8f5e9; color: #2e7d32; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; }
         .error-msg { color: #c62828; font-size: 0.85rem; margin-top: 0.25rem; }
@@ -34,73 +30,56 @@
         .btn { display: inline-block; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
         .btn-primary { background: #4a90d9; color: white; }
         .btn-primary:hover { background: #3a7bc8; }
+        .btn-secondary { background: #e8e8e8; color: #333; }
+        .btn-secondary:hover { background: #ddd; }
         .btn-danger { background: none; color: #c62828; border: 1px solid #c62828; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
         .btn-danger:hover { background: #c62828; color: white; }
+        .btn-warning { background: none; color: #e65100; border: 1px solid #e65100; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+        .btn-warning:hover { background: #e65100; color: white; }
 
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
         th { font-weight: 600; color: #666; font-size: 0.85rem; text-transform: uppercase; }
-        td.amount-cell { font-weight: 600; }
         .empty-state { color: #999; font-style: italic; padding: 1rem 0; }
 
-        .category-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-        .category-bar .name { min-width: 140px; font-size: 0.9rem; }
-        .category-bar .bar-wrap { flex: 1; background: #eee; border-radius: 4px; height: 20px; }
-        .category-bar .bar-fill { height: 100%; background: #4a90d9; border-radius: 4px; min-width: 2px; }
-        .category-bar .val { min-width: 80px; text-align: right; font-weight: 600; font-size: 0.9rem; }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-inactive { background: #fce4ec; color: #c62828; }
+        .badge-interval { background: #e3f2fd; color: #1565c0; }
 
-        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; background: #e3f2fd; color: #1565c0; }
-        .badge-recurring { background: #f3e5f5; color: #7b1fa2; margin-left: 0.4rem; }
-        .btn-warning { background: none; color: #e65100; border: 1px solid #e65100; padding: 0.3rem 0.75rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; font-weight: 600; }
-        .btn-warning:hover { background: #e65100; color: white; }
         .actions { display: flex; gap: 0.5rem; }
+        .generate-section { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
     </style>
 </head>
 <body>
 <div class="container">
     <nav><a th:href="@{/}">&larr; Home</a></nav>
-    <h1>Expenses</h1>
-    <p class="subtitle">Track where your money goes.</p>
+    <h1>Recurring Expenses</h1>
+    <p class="subtitle">Manage expenses that repeat automatically.</p>
 
     <div th:if="${success}" class="success" th:text="${success}"></div>
 
-    <!-- Total spent this month -->
-    <div class="card total-banner">
-        <div class="amount">$<span th:text="${#numbers.formatDecimal(totalSpent, 1, 2)}"></span></div>
-        <div class="label">Spent in <span th:text="${currentMonth}"></span> <span th:text="${currentYear}"></span></div>
+    <!-- Generate now button -->
+    <div class="generate-section">
+        <form th:action="@{/recurring/generate}" method="post">
+            <button type="submit" class="btn btn-secondary">Generate Today's Expenses</button>
+        </form>
     </div>
 
-    <!-- Category breakdown -->
-    <div class="card" th:if="${!categoryTotals.isEmpty()}">
-        <h2>Spending by Category</h2>
-        <div th:each="entry : ${categoryTotals}" class="category-bar">
-            <span class="name" th:text="${entry.key}"></span>
-            <div class="bar-wrap">
-                <div class="bar-fill" th:style="'width:' + ${categoryPercents[entry.key]} + '%'"></div>
-            </div>
-            <span class="val">$<span th:text="${#numbers.formatDecimal(entry.value, 1, 2)}"></span></span>
-        </div>
-    </div>
-
-    <!-- Add expense form -->
+    <!-- Add recurring expense form -->
     <div class="card">
-        <h2>Add Expense</h2>
-        <form th:action="@{/expenses}" th:object="${expenseForm}" method="post">
+        <h2>Add Recurring Expense</h2>
+        <form th:action="@{/recurring}" th:object="${recurringForm}" method="post">
             <div class="field">
                 <label for="description">Description</label>
-                <input type="text" id="description" th:field="*{description}" placeholder="e.g. Grocery shopping" />
+                <input type="text" id="description" th:field="*{description}" placeholder="e.g. Netflix subscription" />
                 <div class="error-msg" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
             </div>
             <div class="row">
                 <div class="field">
                     <label for="amount">Amount ($)</label>
-                    <input type="number" id="amount" th:field="*{amount}" step="0.01" min="0.01" placeholder="e.g. 42.50" />
+                    <input type="number" id="amount" th:field="*{amount}" step="0.01" min="0.01" placeholder="e.g. 15.99" />
                     <div class="error-msg" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
-                </div>
-                <div class="field">
-                    <label for="date">Date</label>
-                    <input type="date" id="date" th:field="*{date}" />
-                    <div class="error-msg" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
                 </div>
                 <div class="field">
                     <label for="category">Category</label>
@@ -110,40 +89,65 @@
                     </select>
                     <div class="error-msg" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
                 </div>
+                <div class="field">
+                    <label for="interval">Interval</label>
+                    <select id="interval" th:field="*{interval}">
+                        <option value="">-- Select --</option>
+                        <option th:each="iv : ${intervals}" th:value="${iv}" th:text="${iv.displayName}"></option>
+                    </select>
+                    <div class="error-msg" th:if="${#fields.hasErrors('interval')}" th:errors="*{interval}"></div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Add Expense</button>
+            <div class="row">
+                <div class="field">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" th:field="*{startDate}" />
+                    <div class="error-msg" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+                </div>
+                <div class="field">
+                    <label for="endDate">End Date (optional)</label>
+                    <input type="date" id="endDate" th:field="*{endDate}" />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Recurring Expense</button>
         </form>
     </div>
 
-    <!-- Expense list -->
+    <!-- Recurring expense list -->
     <div class="card">
-        <h2>This Month's Expenses</h2>
-        <div th:if="${#lists.isEmpty(expenses)}" class="empty-state">No expenses recorded this month.</div>
-        <table th:if="${!#lists.isEmpty(expenses)}">
+        <h2>Your Recurring Expenses</h2>
+        <div th:if="${#lists.isEmpty(recurringExpenses)}" class="empty-state">No recurring expenses set up yet.</div>
+        <table th:if="${!#lists.isEmpty(recurringExpenses)}">
             <thead>
             <tr>
-                <th>Date</th>
                 <th>Description</th>
-                <th>Category</th>
                 <th>Amount</th>
+                <th>Category</th>
+                <th>Interval</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
                 <th></th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="e : ${expenses}">
-                <td th:text="${#temporals.format(e.date, 'MMM d')}"></td>
+            <tr th:each="r : ${recurringExpenses}">
+                <td th:text="${r.description}"></td>
+                <td>$<span th:text="${#numbers.formatDecimal(r.amount, 1, 2)}"></span></td>
+                <td><span class="badge badge-interval" th:text="${r.category.displayName}"></span></td>
+                <td><span class="badge badge-interval" th:text="${r.interval.displayName}"></span></td>
+                <td th:text="${#temporals.format(r.startDate, 'MMM d, yyyy')}"></td>
+                <td th:text="${r.endDate != null ? #temporals.format(r.endDate, 'MMM d, yyyy') : '—'}"></td>
                 <td>
-                    <span th:text="${e.description}"></span>
-                    <span th:if="${e.recurringExpenseId != null}" class="badge badge-recurring">Recurring</span>
+                    <span th:if="${r.active}" class="badge badge-active">Active</span>
+                    <span th:unless="${r.active}" class="badge badge-inactive">Inactive</span>
                 </td>
-                <td><span class="badge" th:text="${e.category.displayName}"></span></td>
-                <td class="amount-cell">$<span th:text="${#numbers.formatDecimal(e.amount, 1, 2)}"></span></td>
                 <td>
                     <div class="actions">
-                        <form th:if="${e.recurringExpenseId != null}" th:action="@{'/expenses/' + ${e.id} + '/skip'}" method="post">
-                            <button type="submit" class="btn btn-warning">Skip</button>
+                        <form th:if="${r.active}" th:action="@{'/recurring/' + ${r.id} + '/deactivate'}" method="post">
+                            <button type="submit" class="btn btn-warning">Deactivate</button>
                         </form>
-                        <form th:action="@{'/expenses/' + ${e.id} + '/delete'}" method="post">
+                        <form th:action="@{'/recurring/' + ${r.id} + '/delete'}" method="post">
                             <button type="submit" class="btn btn-danger">Delete</button>
                         </form>
                     </div>

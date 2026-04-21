@@ -1,4 +1,4 @@
-package com.budgetapp.expense;
+package com.budgetapp.core.domain.model;
 
 public enum ExpenseCategory {
     HOUSING("Housing"),
