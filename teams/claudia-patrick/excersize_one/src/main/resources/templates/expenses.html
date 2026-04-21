@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - Budget App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+        nav { margin-bottom: 2rem; }
+        nav a { color: #4a90d9; text-decoration: none; }
+        nav a:hover { text-decoration: underline; }
+        h1 { margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+
+        .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card h2 { margin-bottom: 1rem; font-size: 1.2rem; }
+
+        .total-banner { text-align: center; padding: 2rem; }
+        .total-banner .amount { font-size: 2.5rem; font-weight: 700; color: #c62828; }
+        .total-banner .label { color: #666; font-size: 0.9rem; margin-top: 0.25rem; }
+
+        .success { background: #e8f5e9; color: #2e7d32; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; }
+        .error-msg { color: #c62828; font-size: 0.85rem; margin-top: 0.25rem; }
+
+        form .field { margin-bottom: 1rem; }
+        form label { display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; }
+        form input, form select { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        form input:focus, form select:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,0.2); }
+        .row { display: flex; gap: 1rem; }
+        .row .field { flex: 1; }
+
+        .btn { display: inline-block; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #4a90d9; color: white; }
+        .btn-primary:hover { background: #3a7bc8; }
+        .btn-danger { background: none; color: #c62828; border: 1px solid #c62828; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+        .btn-danger:hover { background: #c62828; color: white; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
+        th { font-weight: 600; color: #666; font-size: 0.85rem; text-transform: uppercase; }
+        td.amount-cell { font-weight: 600; }
+        .empty-state { color: #999; font-style: italic; padding: 1rem 0; }
+
+        .category-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+        .category-bar .name { min-width: 140px; font-size: 0.9rem; }
+        .category-bar .bar-wrap { flex: 1; background: #eee; border-radius: 4px; height: 20px; }
+        .category-bar .bar-fill { height: 100%; background: #4a90d9; border-radius: 4px; min-width: 2px; }
+        .category-bar .val { min-width: 80px; text-align: right; font-weight: 600; font-size: 0.9rem; }
+
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; background: #e3f2fd; color: #1565c0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav><a th:href="@{/}">&larr; Home</a></nav>
+    <h1>Expenses</h1>
+    <p class="subtitle">Track where your money goes.</p>
+
+    <div th:if="${success}" class="success" th:text="${success}"></div>
+
+    <!-- Total spent this month -->
+    <div class="card total-banner">
+        <div class="amount">$<span th:text="${#numbers.formatDecimal(totalSpent, 1, 2)}"></span></div>
+        <div class="label">Spent in <span th:text="${currentMonth}"></span> <span th:text="${currentYear}"></span></div>
+    </div>
+
+    <!-- Category breakdown -->
+    <div class="card" th:if="${!categoryTotals.isEmpty()}">
+        <h2>Spending by Category</h2>
+        <div th:each="entry : ${categoryTotals}" class="category-bar">
+            <span class="name" th:text="${entry.key}"></span>
+            <div class="bar-wrap">
+                <div class="bar-fill" th:style="'width:' + ${categoryPercents[entry.key]} + '%'"></div>
+            </div>
+            <span class="val">$<span th:text="${#numbers.formatDecimal(entry.value, 1, 2)}"></span></span>
+        </div>
+    </div>
+
+    <!-- Add expense form -->
+    <div class="card">
+        <h2>Add Expense</h2>
+        <form th:action="@{/expenses}" th:object="${expenseForm}" method="post">
+            <div class="field">
+                <label for="description">Description</label>
+                <input type="text" id="description" th:field="*{description}" placeholder="e.g. Grocery shopping" />
+                <div class="error-msg" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" th:field="*{amount}" step="0.01" min="0.01" placeholder="e.g. 42.50" />
+                    <div class="error-msg" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
+                </div>
+                <div class="field">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" th:field="*{date}" />
+                    <div class="error-msg" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
+                </div>
+                <div class="field">
+                    <label for="category">Category</label>
+                    <select id="category" th:field="*{category}">
+                        <option value="">-- Select --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat.displayName}"></option>
+                    </select>
+                    <div class="error-msg" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Expense</button>
+        </form>
+    </div>
+
+    <!-- Expense list -->
+    <div class="card">
+        <h2>This Month's Expenses</h2>
+        <div th:if="${#lists.isEmpty(expenses)}" class="empty-state">No expenses recorded this month.</div>
+        <table th:if="${!#lists.isEmpty(expenses)}">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${expenses}">
+                <td th:text="${#temporals.format(e.date, 'MMM d')}"></td>
+                <td th:text="${e.description}"></td>
+                <td><span class="badge" th:text="${e.category.displayName}"></span></td>
+                <td class="amount-cell">$<span th:text="${#numbers.formatDecimal(e.amount, 1, 2)}"></span></td>
+                <td>
+                    <form th:action="@{'/expenses/' + ${e.id} + '/delete'}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
