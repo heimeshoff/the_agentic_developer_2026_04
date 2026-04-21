@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code in the Laszlo & Robert team workspace.
 
 ## Team
 
@@ -10,22 +10,16 @@ Laszlo & Robert — branch `laszlo-robert`.
 
 All work lives under `teams/laszlo-robert/`:
 
-- `exercise_one/` — personal finance / budgeting app (Exercise 1)
+- `exercise_one/` — personal finance / budgeting app (Exercise 1). Stack: React + TypeScript + Vite.
+- `docs/` — team documentation loaded on demand.
 - Additional exercise folders added as the workshop progresses.
 
-## Active exercises
+## Hard rules
 
-### Exercise One — Personal Finance App
+- Work on branch `laszlo-robert`. Never commit directly to `main`.
+- Merge back to `main` with `--no-ff` only. Never fast-forward.
 
-Brief: build a personal finance and budgeting application. Domain includes income, budgeting, savings, and investments. No prescribed stack, data model, or feature set — the shape is ours to discover.
+## Pointers (read when relevant)
 
-The exercise folder will be `teams/laszlo-robert/exercise_one/`. Once a stack is chosen, add build/run/test commands here.
-
-## Git workflow
-
-- Work on branch `laszlo-robert`, never commit directly to `main`.
-- Merge back with `--no-ff` only (never fast-forward).
-
-## Build / run / test
-
-No tooling exists yet. Once an exercise folder is bootstrapped with a specific stack, update this section with the relevant commands (e.g. `npm run dev`, `python -m pytest`, etc.).
+- **Collaboration workflow** — `docs/workflow.md`. Read before brainstorming, planning, reviewing, or merging.
+- **Exercise 1 stack & commands** — `exercise_one/README.md`.
