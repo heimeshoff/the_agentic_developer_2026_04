@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { z } from "zod";
-import { createUser, findUserByEmail, type User } from "@/lib/db";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createUser, findUserByEmail, findUserById, type User } from "@/lib/db";
 import { isValidCurrency } from "@/lib/currencies";
 
 const SECRET = process.env.AUTH_SECRET;
@@ -93,4 +95,36 @@ export async function authenticateUser(input: {
   const ok = await verifyPassword(parsed.data.password, user.passwordHash);
   if (!ok) return GENERIC;
   return { ok: true, user };
+}
+
+const COOKIE_NAME = "session";
+
+export async function createSession(userId: string): Promise<void> {
+  const token = await signSessionToken(userId);
+  (await cookies()).set(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_SECONDS,
+  });
+}
+
+export async function clearSession(): Promise<void> {
+  (await cookies()).delete(COOKIE_NAME);
+}
+
+export async function getSession(): Promise<{ user: User } | null> {
+  const token = (await cookies()).get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  const payload = await verifySessionToken(token);
+  if (!payload) return null;
+  const user = await findUserById(payload.sub);
+  return user ? { user } : null;
+}
+
+export async function requireSession(): Promise<{ user: User }> {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return session;
 }
