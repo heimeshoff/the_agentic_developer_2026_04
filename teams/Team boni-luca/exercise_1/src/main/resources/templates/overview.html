@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Finance overview</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; color: #222; }
+        h1 { margin-bottom: 0.25rem; }
+        .subtitle { color: #666; margin-top: 0; }
+        .debt { font-size: 2.5rem; font-weight: 600; color: #c0392b; margin: 0.25rem 0 0; }
+        .label { color: #666; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+<h1>Finance overview</h1>
+<p class="subtitle">Team boni-luca</p>
+
+<p class="label">Current debt</p>
+<p class="debt"
+   th:text="|&euro; ${#numbers.formatDecimal(debt.balance, 1, 'COMMA', 2, 'POINT')}|">&euro; 0.00</p>
+</body>
+</html>
