@@ -1,5 +1,8 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
+import { z } from "zod";
+import { createUser, findUserByEmail, type User } from "@/lib/db";
+import { isValidCurrency } from "@/lib/currencies";
 
 const SECRET = process.env.AUTH_SECRET;
 if (!SECRET || SECRET.length < 32) {
@@ -36,4 +39,58 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   } catch {
     return null;
   }
+}
+
+const RegisterSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  currency: z.string().refine(isValidCurrency, "Unsupported currency"),
+});
+
+const LoginSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1),
+});
+
+export type FieldErrors = { _form?: string[]; [field: string]: string[] | undefined };
+export type Result<T> =
+  | { ok: true; user: T }
+  | { ok: false; errors: FieldErrors };
+
+export async function registerUser(input: {
+  email: string; password: string; currency: string;
+}): Promise<Result<User>> {
+  const parsed = RegisterSchema.safeParse(input);
+  if (!parsed.success) {
+    const errors: FieldErrors = {};
+    for (const issue of parsed.error.issues) {
+      const key = (issue.path[0] ?? "_form") as string;
+      (errors[key] ??= []).push(issue.message);
+    }
+    return { ok: false, errors };
+  }
+  const existing = await findUserByEmail(parsed.data.email);
+  if (existing) {
+    return { ok: false, errors: { _form: ["Unable to register with the provided details"] } };
+  }
+  const passwordHash = await hashPassword(parsed.data.password);
+  const user = await createUser({
+    email: parsed.data.email,
+    passwordHash,
+    currency: parsed.data.currency,
+  });
+  return { ok: true, user };
+}
+
+export async function authenticateUser(input: {
+  email: string; password: string;
+}): Promise<Result<User>> {
+  const GENERIC = { ok: false as const, errors: { _form: ["Invalid email or password"] } };
+  const parsed = LoginSchema.safeParse(input);
+  if (!parsed.success) return GENERIC;
+  const user = await findUserByEmail(parsed.data.email);
+  if (!user) return GENERIC;
+  const ok = await verifyPassword(parsed.data.password, user.passwordHash);
+  if (!ok) return GENERIC;
+  return { ok: true, user };
 }
