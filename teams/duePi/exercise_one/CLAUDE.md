@@ -36,7 +36,7 @@ When in doubt, build the smallest thing that lets a user record an entry and see
 
 ## Where code lives
 
-All code for this team lives under `teams/duePi/`. Create subfolders freely (e.g. `app/`, `data/`, `notes/`) as the app takes shape. Do **not** write team code outside this folder.
+All code for this exercise lives under `teams/duePi/exercise_one/`. Create subfolders freely (e.g. `app/`, `data/`, `notes/`) as the app takes shape. Do **not** write code for this exercise outside this folder.
 
 ## Tech stack
 

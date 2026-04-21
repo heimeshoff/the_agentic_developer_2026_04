@@ -1,20 +1,20 @@
 ---
 name: feature
-description: Scaffold a feature slice (Gherkin spec + React + TypeScript + localStorage) for team duePi's personal finance & budgeting app from an entry in `teams/duePi/features.md`. Trigger whenever the user runs `/feature`, asks to "build the next feature", "implement track-expenses", "turn this markdown spec into code", "scaffold a feature", or otherwise wants to move an item in `features.md` from pending to implemented. Also trigger when the user adds a new feature description in discussion and asks what's next to build. Use even when `/feature` is not typed verbatim, as long as the intent is to realise a `features.md` entry in the duePi app.
+description: Scaffold a feature slice (Gherkin spec + React + TypeScript + localStorage) for team duePi's personal finance & budgeting app from an entry in `teams/duePi/exercise_one/features.md`. Trigger whenever the user runs `/feature`, asks to "build the next feature", "implement track-expenses", "turn this markdown spec into code", "scaffold a feature", or otherwise wants to move an item in `features.md` from pending to implemented. Also trigger when the user adds a new feature description in discussion and asks what's next to build. Use even when `/feature` is not typed verbatim, as long as the intent is to realise a `features.md` entry in the duePi app.
 ---
 
 # /feature — build a duePi feature slice from features.md
 
-Turn a pending entry in `teams/duePi/features.md` into a runnable vertical slice of the app: a Gherkin spec, TypeScript types, a `localStorage`-backed storage module, and React component(s). Keep `features.md` in sync as the single source of truth for what's planned, in-progress, and done.
+Turn a pending entry in `teams/duePi/exercise_one/features.md` into a runnable vertical slice of the app: a Gherkin spec, TypeScript types, a `localStorage`-backed storage module, and React component(s). Keep `features.md` in sync as the single source of truth for what's planned, in-progress, and done.
 
-Scope is **team duePi's personal finance app only**. Stack is **React + TypeScript + `localStorage`** (see `teams/duePi/CLAUDE.md` for the full stack rationale). Gherkin is **docs-only** — we write `.feature` files as specification and concrete examples, but don't wire a test runner yet.
+Scope is **team duePi's personal finance app only**. Stack is **React + TypeScript + `localStorage`** (see `teams/duePi/exercise_one/CLAUDE.md` for the full stack rationale). Gherkin is **docs-only** — we write `.feature` files as specification and concrete examples, but don't wire a test runner yet.
 
 ## Inputs
 
-- **`teams/duePi/features.md`** — the feature tracker. Read it on every invocation.
+- **`teams/duePi/exercise_one/features.md`** — the feature tracker. Read it on every invocation.
 - **Optional argument** — a feature slug, e.g. `/feature track-expenses`. If present, build that one. If omitted, list pending features and ask which to build next.
 
-If `features.md` doesn't exist, create it using the format below, seeded from the use cases in `teams/duePi/CLAUDE.md`. Confirm the seed list with the user before writing code.
+If `features.md` doesn't exist, create it using the format below, seeded from the use cases in `teams/duePi/exercise_one/CLAUDE.md`. Confirm the seed list with the user before writing code.
 
 ## features.md format
 
@@ -33,11 +33,11 @@ Status transitions by swapping the checkbox: `[ ]` → `[~]` → `[x]`. Slugs ar
 
 ## Workflow
 
-1. **Read `features.md`.** If missing, create it from `teams/duePi/CLAUDE.md`'s use-case section and ask the user to confirm the seeded list.
+1. **Read `features.md`.** If missing, create it from `teams/duePi/exercise_one/CLAUDE.md`'s use-case section and ask the user to confirm the seeded list.
 2. **Pick the target feature.**
    - Slug given → match case-insensitively. No match → list slugs, ask.
    - No slug given → list `[ ]` pending features, ask which to build.
-3. **Sanity check the app scaffold.** If `teams/duePi/app/package.json` doesn't exist, stop: we can't scaffold into a missing React app. Offer to bootstrap it first with `npm create vite@latest app -- --template react-ts` inside `teams/duePi/`, then resume.
+3. **Sanity check the app scaffold.** If `teams/duePi/exercise_one/app/package.json` doesn't exist, stop: we can't scaffold into a missing React app. Offer to bootstrap it first with `npm create vite@latest app -- --template react-ts` inside `teams/duePi/exercise_one/`, then resume.
 4. **Restate the feature in one sentence and flag anything ambiguous.** If the entry is terse, propose the scenarios you intend to write before coding. Skip this if the feature is obvious.
 5. **Flip status to in-progress** (`[ ]` → `[~]`) in `features.md`.
 6. **Write the Gherkin spec first.** The scenarios anchor the implementation — when the component and storage are in doubt, go back to the `.feature` file.
@@ -51,7 +51,7 @@ Status transitions by swapping the checkbox: `[ ]` → `[~]` → `[x]`. Slugs ar
 For a feature with kebab-case slug `<slug>` and PascalCase `<Name>`:
 
 ```
-teams/duePi/app/src/features/<slug>/
+teams/duePi/exercise_one/app/src/features/<slug>/
 ├── <slug>.feature        Gherkin scenarios (docs + examples, no runner)
 ├── types.ts              Types for entities in this slice
 ├── storage.ts            localStorage read/write, versioned schema
@@ -100,7 +100,7 @@ export interface Expense {
 }
 ```
 
-Before re-declaring a type, check sibling features — `Category`, `Money`, and similar shared primitives likely already exist. If a type is clearly shared, promote it to `teams/duePi/app/src/shared/types.ts` and import from there.
+Before re-declaring a type, check sibling features — `Category`, `Money`, and similar shared primitives likely already exist. If a type is clearly shared, promote it to `teams/duePi/exercise_one/app/src/shared/types.ts` and import from there.
 
 ## Template: `storage.ts`
 
@@ -172,8 +172,8 @@ The tracker only stays useful if it reflects reality.
 
 - **Don't scaffold a test runner** (cucumber-js, playwright-bdd, vitest-cucumber). The team decided Gherkin is docs-only for now. Revisit only when the user explicitly asks.
 - **Don't add routing libraries, state managers, UI kits, CSS frameworks, or new dependencies** unless the feature genuinely cannot work without them — and even then, flag it and ask first.
-- **Don't touch other teams' folders.** This skill is scoped to `teams/duePi/` only.
-- **Don't reinvent shared helpers** across feature folders. If two features clearly need the same thing (same shape, same logic), promote to `teams/duePi/app/src/shared/` once — not on the first duplicate, on the obvious second.
+- **Don't touch other teams' folders.** This skill is scoped to `teams/duePi/exercise_one/` only.
+- **Don't reinvent shared helpers** across feature folders. If two features clearly need the same thing (same shape, same logic), promote to `teams/duePi/exercise_one/app/src/shared/` once — not on the first duplicate, on the obvious second.
 - **Don't write backend, auth, or bank-integration code.** `localStorage` only. One device, one user. (See `CLAUDE.md` → "Out of scope".)
 
 ## When the feature is bigger than one slice
