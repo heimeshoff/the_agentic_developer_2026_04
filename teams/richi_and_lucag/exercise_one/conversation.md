@@ -66,28 +66,30 @@ build (co-drive, iterative)
 
 ---
 
-## Proposed File Structure
+## File Structure
 
 ```
 teams/richi_and_lucag/
   CLAUDE.md                        # team context + phase rules
-  context.md                       # this file
   .claude/commands/
     research.md                    # /research command
     domain.md                      # /domain command
     plan.md                        # /plan command
-  exercise_1/docs/
-    research.md                    # research phase artifact
-    domain.md                      # domain phase artifact
-    plan.md                        # planning phase artifact
+  exercise_one/
+    conversation.md                # this file
+    memory/
+      YYYY-MM-DD-<slug>/             # one folder per session, timestamp+slug
+         research.md
+         domain.md
+         plan.md
 ```
 
-> **Open question**: Is `exercise_1/docs/` the right home for artifacts, or do you prefer flat in `exercise_1/` or a top-level `docs/` at team level?
+**Artifact convention**: session folder named `YYYY-MM-DD-<scope-slug>`, files named by phase.
+Example: `exercise_one/2026-04-21-homeowner-scaffolding/research.md`
 
 ---
 
 ## Open Items
 
-- [ ] Confirm artifact location (`exercise_1/docs/` vs alternative)
-- [ ] Write `CLAUDE.md`, command files, and artifact templates
+- [ ] Write `CLAUDE.md`, command files
 - [ ] Run `/research` as first phase
