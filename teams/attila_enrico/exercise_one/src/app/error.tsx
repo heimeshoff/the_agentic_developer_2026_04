@@ -1,6 +1,17 @@
 "use client";
 
-export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from "react";
+
+interface GlobalErrorProps {
+  error: Error;
+  reset: () => void;
+}
+
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
     <main className="mx-auto flex min-h-screen max-w-sm items-center p-6">
       <div className="w-full space-y-4 rounded-lg border border-border bg-surface p-6 text-center">
