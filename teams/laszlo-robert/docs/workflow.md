@@ -25,6 +25,12 @@ How we (Laszlo, Robert, and Claude) collaborate on workshop exercises. Load this
 - **Verification before completion** (`superpowers:verification-before-completion`). Run typecheck, build, and the app itself. Show evidence, don't assert.
 - For UI: open it in the browser and exercise the golden path + obvious edge cases before reporting back.
 
+## QA validation
+
+- **Run the QA validation workflow** (`docs/qa-validation.md`) against the acceptance criteria (plan's `Verification` section or an explicit list) before handing off to review.
+- Drives the live app via the Chrome DevTools MCP (`chrome-devtools-mcp`). Every criterion gets a screenshot + pass/fail note.
+- A failed criterion blocks review. Fix, then re-run the full validation — don't cherry-pick.
+
 ## Review & merge
 
 - **Code review** (`superpowers:requesting-code-review` / `receiving-code-review`) before merging feature branches back to `laszlo-robert`.

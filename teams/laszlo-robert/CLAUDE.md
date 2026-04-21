@@ -22,4 +22,5 @@ All work lives under `teams/laszlo-robert/`:
 ## Pointers (read when relevant)
 
 - **Collaboration workflow** — `docs/workflow.md`. Read before brainstorming, planning, reviewing, or merging.
+- **QA validation** — `docs/qa-validation.md`. Read before validating a feature against acceptance criteria (driven via Chrome DevTools MCP).
 - **Exercise 1 stack & commands** — `exercise_one/README.md`.
