@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: budget-app
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/budgetapp
+    username: budgetapp
+    password: budgetapp
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+  thymeleaf:
+    cache: false

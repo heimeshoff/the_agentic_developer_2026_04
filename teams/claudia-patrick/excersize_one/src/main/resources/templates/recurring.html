@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recurring Expenses - Budget App</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+        nav { margin-bottom: 2rem; }
+        nav a { color: #4a90d9; text-decoration: none; }
+        nav a:hover { text-decoration: underline; }
+        h1 { margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+
+        .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card h2 { margin-bottom: 1rem; font-size: 1.2rem; }
+
+        .success { background: #e8f5e9; color: #2e7d32; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; }
+        .error-msg { color: #c62828; font-size: 0.85rem; margin-top: 0.25rem; }
+
+        form .field { margin-bottom: 1rem; }
+        form label { display: block; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; }
+        form input, form select { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        form input:focus, form select:focus { outline: none; border-color: #4a90d9; box-shadow: 0 0 0 2px rgba(74,144,217,0.2); }
+        .row { display: flex; gap: 1rem; }
+        .row .field { flex: 1; }
+
+        .btn { display: inline-block; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #4a90d9; color: white; }
+        .btn-primary:hover { background: #3a7bc8; }
+        .btn-secondary { background: #e8e8e8; color: #333; }
+        .btn-secondary:hover { background: #ddd; }
+        .btn-danger { background: none; color: #c62828; border: 1px solid #c62828; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+        .btn-danger:hover { background: #c62828; color: white; }
+        .btn-warning { background: none; color: #e65100; border: 1px solid #e65100; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+        .btn-warning:hover { background: #e65100; color: white; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
+        th { font-weight: 600; color: #666; font-size: 0.85rem; text-transform: uppercase; }
+        .empty-state { color: #999; font-style: italic; padding: 1rem 0; }
+
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-inactive { background: #fce4ec; color: #c62828; }
+        .badge-interval { background: #e3f2fd; color: #1565c0; }
+
+        .actions { display: flex; gap: 0.5rem; }
+        .generate-section { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav><a th:href="@{/}">&larr; Home</a></nav>
+    <h1>Recurring Expenses</h1>
+    <p class="subtitle">Manage expenses that repeat automatically.</p>
+
+    <div th:if="${success}" class="success" th:text="${success}"></div>
+
+    <!-- Generate now button -->
+    <div class="generate-section">
+        <form th:action="@{/recurring/generate}" method="post">
+            <button type="submit" class="btn btn-secondary">Generate Today's Expenses</button>
+        </form>
+    </div>
+
+    <!-- Add recurring expense form -->
+    <div class="card">
+        <h2>Add Recurring Expense</h2>
+        <form th:action="@{/recurring}" th:object="${recurringForm}" method="post">
+            <div class="field">
+                <label for="description">Description</label>
+                <input type="text" id="description" th:field="*{description}" placeholder="e.g. Netflix subscription" />
+                <div class="error-msg" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" th:field="*{amount}" step="0.01" min="0.01" placeholder="e.g. 15.99" />
+                    <div class="error-msg" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
+                </div>
+                <div class="field">
+                    <label for="category">Category</label>
+                    <select id="category" th:field="*{category}">
+                        <option value="">-- Select --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat.displayName}"></option>
+                    </select>
+                    <div class="error-msg" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                </div>
+                <div class="field">
+                    <label for="interval">Interval</label>
+                    <select id="interval" th:field="*{interval}">
+                        <option value="">-- Select --</option>
+                        <option th:each="iv : ${intervals}" th:value="${iv}" th:text="${iv.displayName}"></option>
+                    </select>
+                    <div class="error-msg" th:if="${#fields.hasErrors('interval')}" th:errors="*{interval}"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" th:field="*{startDate}" />
+                    <div class="error-msg" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+                </div>
+                <div class="field">
+                    <label for="endDate">End Date (optional)</label>
+                    <input type="date" id="endDate" th:field="*{endDate}" />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Recurring Expense</button>
+        </form>
+    </div>
+
+    <!-- Recurring expense list -->
+    <div class="card">
+        <h2>Your Recurring Expenses</h2>
+        <div th:if="${#lists.isEmpty(recurringExpenses)}" class="empty-state">No recurring expenses set up yet.</div>
+        <table th:if="${!#lists.isEmpty(recurringExpenses)}">
+            <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Interval</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${recurringExpenses}">
+                <td th:text="${r.description}"></td>
+                <td>$<span th:text="${#numbers.formatDecimal(r.amount, 1, 2)}"></span></td>
+                <td><span class="badge badge-interval" th:text="${r.category.displayName}"></span></td>
+                <td><span class="badge badge-interval" th:text="${r.interval.displayName}"></span></td>
+                <td th:text="${#temporals.format(r.startDate, 'MMM d, yyyy')}"></td>
+                <td th:text="${r.endDate != null ? #temporals.format(r.endDate, 'MMM d, yyyy') : '—'}"></td>
+                <td>
+                    <span th:if="${r.active}" class="badge badge-active">Active</span>
+                    <span th:unless="${r.active}" class="badge badge-inactive">Inactive</span>
+                </td>
+                <td>
+                    <div class="actions">
+                        <form th:if="${r.active}" th:action="@{'/recurring/' + ${r.id} + '/deactivate'}" method="post">
+                            <button type="submit" class="btn btn-warning">Deactivate</button>
+                        </form>
+                        <form th:action="@{'/recurring/' + ${r.id} + '/delete'}" method="post">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
