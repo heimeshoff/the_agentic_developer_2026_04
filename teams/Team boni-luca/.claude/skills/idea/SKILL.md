@@ -36,7 +36,11 @@ Write 3–8 bullets covering:
 - Tests you'll add: which domain behaviour, which CSV round-trip, which controller path.
 - Anything that breaks existing tests or existing CSV files (compatibility cost).
 
-Don't enter formal plan mode for this — keep it conversational. Ask for a thumbs-up before writing code, **unless** the change is trivial (< ~20 lines of code, no new ports, no domain model changes). Trivial changes can skip straight to stage 3 with a one-line announcement.
+Don't enter formal plan mode for this — keep it conversational. End the plan with a one-line ask phrased so the **default is to proceed**, e.g. *"Hit enter (or say 'go') to start implementing, or tell me what to change."* Then wait for the user's next message.
+
+Treat any minimal affirmation as approval and start implementing immediately: empty-ish input, `y`, `yes`, `yep`, `ok`, `go`, `ship it`, `👍`, `✅`, and the like. Only pause if the user raises a concern, asks for a change, or questions the plan. Don't ask "are you sure?" — the user already said go.
+
+Skip the ask entirely for trivial changes (< ~20 lines of code, no new ports, no domain model changes). Announce what you're doing in one sentence and go.
 
 ### 3. Implement
 
