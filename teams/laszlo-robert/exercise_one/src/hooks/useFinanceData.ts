@@ -35,50 +35,50 @@ export function useFinanceData() {
   const [data, setData] = useLocalStorage<PFData>('pf_data', SEED)
 
   const addIncome = (entry: Omit<IncomeEntry, 'id'>) =>
-    setData({ ...data, income: [...data.income, { ...entry, id: crypto.randomUUID() }] })
+    setData(prev => ({ ...prev, income: [...prev.income, { ...entry, id: crypto.randomUUID() }] }))
 
   const deleteIncome = (id: string) =>
-    setData({ ...data, income: data.income.filter(e => e.id !== id) })
+    setData(prev => ({ ...prev, income: prev.income.filter(e => e.id !== id) }))
 
   const addCategory = (cat: Omit<BudgetCategory, 'id'>) =>
-    setData({ ...data, budgetCategories: [...data.budgetCategories, { ...cat, id: crypto.randomUUID() }] })
+    setData(prev => ({ ...prev, budgetCategories: [...prev.budgetCategories, { ...cat, id: crypto.randomUUID() }] }))
 
   const deleteCategory = (id: string) =>
-    setData({
-      ...data,
-      budgetCategories: data.budgetCategories.filter(c => c.id !== id),
-      transactions: data.transactions.filter(t => t.categoryId !== id),
-    })
+    setData(prev => ({
+      ...prev,
+      budgetCategories: prev.budgetCategories.filter(c => c.id !== id),
+      transactions: prev.transactions.filter(t => t.categoryId !== id),
+    }))
 
   const addTransaction = (tx: Omit<Transaction, 'id'>) =>
-    setData({ ...data, transactions: [...data.transactions, { ...tx, id: crypto.randomUUID() }] })
+    setData(prev => ({ ...prev, transactions: [...prev.transactions, { ...tx, id: crypto.randomUUID() }] }))
 
   const deleteTransaction = (id: string) =>
-    setData({ ...data, transactions: data.transactions.filter(t => t.id !== id) })
+    setData(prev => ({ ...prev, transactions: prev.transactions.filter(t => t.id !== id) }))
 
   const addGoal = (goal: Omit<SavingsGoal, 'id'>) =>
-    setData({ ...data, savingsGoals: [...data.savingsGoals, { ...goal, id: crypto.randomUUID() }] })
+    setData(prev => ({ ...prev, savingsGoals: [...prev.savingsGoals, { ...goal, id: crypto.randomUUID() }] }))
 
   const updateGoalAmount = (id: string, amount: number) =>
-    setData({
-      ...data,
-      savingsGoals: data.savingsGoals.map(g => (g.id === id ? { ...g, currentAmount: amount } : g)),
-    })
+    setData(prev => ({
+      ...prev,
+      savingsGoals: prev.savingsGoals.map(g => (g.id === id ? { ...g, currentAmount: amount } : g)),
+    }))
 
   const deleteGoal = (id: string) =>
-    setData({ ...data, savingsGoals: data.savingsGoals.filter(g => g.id !== id) })
+    setData(prev => ({ ...prev, savingsGoals: prev.savingsGoals.filter(g => g.id !== id) }))
 
   const addInvestment = (inv: Omit<Investment, 'id'>) =>
-    setData({ ...data, investments: [...data.investments, { ...inv, id: crypto.randomUUID() }] })
+    setData(prev => ({ ...prev, investments: [...prev.investments, { ...inv, id: crypto.randomUUID() }] }))
 
   const updateInvestmentPrice = (id: string, currentPrice: number) =>
-    setData({
-      ...data,
-      investments: data.investments.map(i => (i.id === id ? { ...i, currentPrice } : i)),
-    })
+    setData(prev => ({
+      ...prev,
+      investments: prev.investments.map(i => (i.id === id ? { ...i, currentPrice } : i)),
+    }))
 
   const deleteInvestment = (id: string) =>
-    setData({ ...data, investments: data.investments.filter(i => i.id !== id) })
+    setData(prev => ({ ...prev, investments: prev.investments.filter(i => i.id !== id) }))
 
   return {
     data,

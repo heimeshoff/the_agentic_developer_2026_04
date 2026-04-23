@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { useLanguage } from '@/i18n/LanguageContext'
 import type { SavingsGoal } from '@/types'
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 }
 
 export function SavingsGoalCard({ goal, onUpdateAmount, onDelete }: Props) {
+  const { t, formatCurrency, formatDate } = useLanguage()
   const [contributing, setContributing] = useState(false)
   const [amount, setAmount] = useState('')
   const pct = Math.min(100, (goal.currentAmount / goal.targetAmount) * 100)
@@ -33,10 +34,10 @@ export function SavingsGoalCard({ goal, onUpdateAmount, onDelete }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <span className="font-semibold">{goal.name}</span>
-            {done && <Badge className="bg-green-500">Complete</Badge>}
+            {done && <Badge className="bg-green-500">{t('savingsComplete')}</Badge>}
           </div>
           {goal.deadline && (
-            <span className="text-xs text-muted-foreground">Due {formatDate(goal.deadline)}</span>
+            <span className="text-xs text-muted-foreground">{t('savingsDue')} {formatDate(goal.deadline)}</span>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -52,12 +53,12 @@ export function SavingsGoalCard({ goal, onUpdateAmount, onDelete }: Props) {
       {!done && (
         contributing ? (
           <form onSubmit={handleContribute} className="flex gap-2 items-center">
-            <Input type="number" min="0" step="0.01" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} className="w-32" />
-            <Button type="submit" size="sm">Save</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setContributing(false)}>Cancel</Button>
+            <Input type="number" min="0" step="0.01" placeholder={t('savingsContributionAmount')} value={amount} onChange={e => setAmount(e.target.value)} className="w-32" />
+            <Button type="submit" size="sm">{t('savingsSave')}</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setContributing(false)}>{t('savingsCancel')}</Button>
           </form>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => setContributing(true)}>+ Add Contribution</Button>
+          <Button size="sm" variant="outline" onClick={() => setContributing(true)}>{t('savingsAddContribution')}</Button>
         )
       )}
     </div>

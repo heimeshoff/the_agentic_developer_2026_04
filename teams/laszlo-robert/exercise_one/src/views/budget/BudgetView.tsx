@@ -2,7 +2,8 @@ import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatCurrency, formatDate, sumBy } from '@/lib/utils'
+import { sumBy } from '@/lib/utils'
+import { useLanguage } from '@/i18n/LanguageContext'
 import type { BudgetCategory, Transaction } from '@/types'
 import { BudgetCategoryCard } from './BudgetCategoryCard'
 import { CategoryForm } from './CategoryForm'
@@ -18,6 +19,7 @@ type Props = {
 }
 
 export function BudgetView({ categories, transactions, onAddCategory, onDeleteCategory, onAddTransaction, onDeleteTransaction }: Props) {
+  const { t, formatCurrency, formatDate } = useLanguage()
   const totalBudgeted = sumBy(categories, c => c.budgeted)
   const totalSpent = sumBy(transactions, t => t.amount)
   const categoryMap = Object.fromEntries(categories.map(c => [c.id, c.name]))
@@ -26,15 +28,15 @@ export function BudgetView({ categories, transactions, onAddCategory, onDeleteCa
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Budgeted</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('budgetTotalBudgeted')}</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{formatCurrency(totalBudgeted)}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Spent</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('budgetTotalSpent')}</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold text-orange-600">{formatCurrency(totalSpent)}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Remaining</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('budgetRemaining')}</CardTitle></CardHeader>
           <CardContent>
             <p className={`text-2xl font-bold ${totalBudgeted - totalSpent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
               {formatCurrency(totalBudgeted - totalSpent)}
@@ -44,39 +46,39 @@ export function BudgetView({ categories, transactions, onAddCategory, onDeleteCa
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Add Category</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('budgetAddCategory')}</CardTitle></CardHeader>
         <CardContent><CategoryForm onAdd={onAddCategory} /></CardContent>
       </Card>
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-lg">Categories</h3>
-        {categories.length === 0 && <p className="text-muted-foreground text-center py-4">No categories yet.</p>}
+        <h3 className="font-semibold text-lg">{t('budgetCategories')}</h3>
+        {categories.length === 0 && <p className="text-muted-foreground text-center py-4">{t('budgetCategoriesEmpty')}</p>}
         {categories.map(c => (
           <BudgetCategoryCard key={c.id} category={c} transactions={transactions} onDelete={onDeleteCategory} />
         ))}
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Add Transaction</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('budgetAddTransaction')}</CardTitle></CardHeader>
         <CardContent><TransactionForm categories={categories} onAdd={onAddTransaction} /></CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Recent Transactions</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('budgetRecentTx')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t('budgetColDate')}</TableHead>
+                <TableHead>{t('budgetColCategory')}</TableHead>
+                <TableHead>{t('budgetColDescription')}</TableHead>
+                <TableHead className="text-right">{t('budgetColAmount')}</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">No transactions yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">{t('budgetTxEmpty')}</TableCell></TableRow>
               )}
               {[...transactions].sort((a, b) => b.date.localeCompare(a.date)).map(tx => (
                 <TableRow key={tx.id}>

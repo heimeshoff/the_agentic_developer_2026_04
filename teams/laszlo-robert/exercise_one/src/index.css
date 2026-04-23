@@ -2,7 +2,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+/* ============================================================
+   ORIGINAL — shadcn zinc light (default if no data-theme set)
+   ============================================================ */
+:root,
+:root[data-theme="original"] {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -30,28 +34,61 @@
   --chart-5: 27 87% 67%;
 }
 
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+/* ============================================================
+   MATRIX — phosphor green on black
+   ============================================================ */
+:root[data-theme="matrix"] {
+  --background: 120 20% 2%;
+  --foreground: 120 100% 70%;
+  --card: 120 30% 4%;
+  --card-foreground: 120 100% 75%;
+  --popover: 120 30% 4%;
+  --popover-foreground: 120 100% 75%;
+  --primary: 120 100% 45%;
+  --primary-foreground: 120 30% 4%;
+  --secondary: 120 30% 8%;
+  --secondary-foreground: 120 100% 75%;
+  --muted: 120 30% 8%;
+  --muted-foreground: 120 60% 45%;
+  --accent: 120 40% 12%;
+  --accent-foreground: 120 100% 75%;
+  --destructive: 0 95% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 120 60% 18%;
+  --input: 120 60% 14%;
+  --ring: 120 100% 50%;
+  --radius: 0.25rem;
 }
 
+/* ============================================================
+   SONIC — Sega blue sky, gold rings, shoe red
+   ============================================================ */
+:root[data-theme="sonic"] {
+  --background: 205 100% 55%;
+  --foreground: 225 80% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 225 80% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 225 80% 12%;
+  --primary: 220 100% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 51 100% 55%;
+  --secondary-foreground: 225 80% 12%;
+  --muted: 210 80% 92%;
+  --muted-foreground: 220 40% 30%;
+  --accent: 51 100% 55%;
+  --accent-foreground: 225 80% 12%;
+  --destructive: 357 95% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 80% 30%;
+  --input: 210 60% 95%;
+  --ring: 51 100% 50%;
+  --radius: 1rem;
+}
+
+/* ============================================================
+   tailwind theme token mapping — shared across all themes
+   ============================================================ */
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -78,12 +115,120 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-* {
-  border-color: hsl(var(--border));
-}
+/* ============================================================
+   Base body — applies to all themes; each theme overrides below
+   ============================================================ */
+* { border-color: hsl(var(--border)); }
 
-body {
+html, body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================================
+   MATRIX styling
+   ============================================================ */
+:root[data-theme="matrix"] body {
+  background-color: #000;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', ui-monospace, monospace;
+  letter-spacing: 0.01em;
+}
+:root[data-theme="matrix"] strong,
+:root[data-theme="matrix"] h1,
+:root[data-theme="matrix"] h2,
+:root[data-theme="matrix"] h3,
+:root[data-theme="matrix"] .glow {
+  text-shadow:
+    0 0 4px rgba(0, 255, 120, 0.55),
+    0 0 12px rgba(0, 255, 120, 0.35);
+}
+:root[data-theme="matrix"] button {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:root[data-theme="matrix"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 255, 120, 0.03) 0,
+    rgba(0, 255, 120, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+}
+:root[data-theme="matrix"] ::selection {
+  background: rgba(0, 255, 120, 0.35);
+  color: #eaffea;
+}
+:root[data-theme="matrix"] [data-slot="card"] {
+  box-shadow:
+    0 0 0 1px hsla(120, 100%, 40%, 0.15),
+    0 0 18px hsla(120, 100%, 40%, 0.08) inset;
+}
+:root[data-theme="matrix"] ::-webkit-scrollbar { width: 8px; height: 8px; }
+:root[data-theme="matrix"] ::-webkit-scrollbar-track { background: #000; }
+:root[data-theme="matrix"] ::-webkit-scrollbar-thumb {
+  background: hsl(120 80% 25%);
+  border-radius: 4px;
+}
+:root[data-theme="matrix"] ::-webkit-scrollbar-thumb:hover { background: hsl(120 100% 40%); }
+
+/* ============================================================
+   SONIC styling — chunky rounded, bold, cartoony
+   ============================================================ */
+:root[data-theme="sonic"] body {
+  font-family: 'Fredoka', 'Nunito', ui-rounded, 'Avenir Next', system-ui, sans-serif;
+  font-weight: 600;
+}
+:root[data-theme="sonic"] h1,
+:root[data-theme="sonic"] h2,
+:root[data-theme="sonic"] h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+:root[data-theme="sonic"] button {
+  font-weight: 700;
+}
+:root[data-theme="sonic"] [data-slot="card"] {
+  border-width: 3px;
+  border-color: hsl(220 80% 30%);
+  box-shadow: 4px 4px 0 0 hsl(225 80% 12% / 0.9);
+}
+:root[data-theme="sonic"] ::selection {
+  background: hsl(51 100% 55%);
+  color: hsl(225 80% 12%);
+}
+
+.sonic-stripes {
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.12) 0 14px,
+    transparent 14px 46px,
+    rgba(255, 215, 0, 0.14) 46px 62px,
+    transparent 62px 110px
+  );
+  background-size: 220px 220px;
+  animation: sonic-pan 1.4s linear infinite;
+}
+
+@keyframes sonic-pan {
+  from { background-position: 0 0; }
+  to { background-position: -220px 0; }
+}
+
+@keyframes ring-spin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+.sonic-ring {
+  display: inline-block;
+  animation: ring-spin 1.2s linear infinite;
 }

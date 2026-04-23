@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useLanguage } from '@/i18n/LanguageContext'
 import type { Investment } from '@/types'
 
 type Props = { onAdd: (inv: Omit<Investment, 'id'>) => void }
 
 export function InvestmentForm({ onAdd }: Props) {
+  const { t, currencySymbol } = useLanguage()
   const [name, setName] = useState('')
   const [assetType, setAssetType] = useState<Investment['assetType']>('stock')
   const [shares, setShares] = useState('')
@@ -24,34 +26,34 @@ export function InvestmentForm({ onAdd }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex gap-3 items-end flex-wrap">
       <div className="flex flex-col gap-1.5 flex-1 min-w-28">
-        <Label htmlFor="inv-name">Name / Ticker</Label>
-        <Input id="inv-name" placeholder="e.g. AAPL" value={name} onChange={e => setName(e.target.value)} />
+        <Label htmlFor="inv-name">{t('invNameTicker')}</Label>
+        <Input id="inv-name" placeholder={t('invNamePlaceholder')} value={name} onChange={e => setName(e.target.value)} />
       </div>
       <div className="flex flex-col gap-1.5 w-32">
-        <Label>Type</Label>
+        <Label>{t('invType')}</Label>
         <Select value={assetType} onValueChange={v => setAssetType(v as Investment['assetType'])}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="stock">Stock</SelectItem>
-            <SelectItem value="etf">ETF</SelectItem>
-            <SelectItem value="crypto">Crypto</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="stock">{t('invTypeStock')}</SelectItem>
+            <SelectItem value="etf">{t('invTypeEtf')}</SelectItem>
+            <SelectItem value="crypto">{t('invTypeCrypto')}</SelectItem>
+            <SelectItem value="other">{t('invTypeOther')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex flex-col gap-1.5 w-24">
-        <Label htmlFor="inv-shares">Shares</Label>
+        <Label htmlFor="inv-shares">{t('invShares')}</Label>
         <Input id="inv-shares" type="number" min="0" step="any" placeholder="0" value={shares} onChange={e => setShares(e.target.value)} />
       </div>
       <div className="flex flex-col gap-1.5 w-32">
-        <Label htmlFor="inv-buy">Buy Price ($)</Label>
+        <Label htmlFor="inv-buy">{t('invBuyPrice')} ({currencySymbol})</Label>
         <Input id="inv-buy" type="number" min="0" step="0.01" placeholder="0.00" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} />
       </div>
       <div className="flex flex-col gap-1.5 w-32">
-        <Label htmlFor="inv-cur">Current Price ($)</Label>
+        <Label htmlFor="inv-cur">{t('invCurrentPrice')} ({currencySymbol})</Label>
         <Input id="inv-cur" type="number" min="0" step="0.01" placeholder="0.00" value={currentPrice} onChange={e => setCurrentPrice(e.target.value)} />
       </div>
-      <Button type="submit">Add</Button>
+      <Button type="submit">{t('add')}</Button>
     </form>
   )
 }

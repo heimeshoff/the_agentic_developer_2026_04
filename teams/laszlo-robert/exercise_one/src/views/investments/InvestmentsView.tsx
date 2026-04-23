@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatCurrency, sumBy } from '@/lib/utils'
+import { sumBy } from '@/lib/utils'
+import { useLanguage } from '@/i18n/LanguageContext'
 import type { Investment } from '@/types'
+import type { MessageKey } from '@/i18n/messages'
 import { InvestmentForm } from './InvestmentForm'
 
 type Props = {
@@ -16,13 +18,21 @@ type Props = {
 }
 
 const ASSET_TYPE_COLORS: Record<Investment['assetType'], string> = {
-  stock: 'bg-blue-100 text-blue-800',
-  etf: 'bg-purple-100 text-purple-800',
-  crypto: 'bg-orange-100 text-orange-800',
-  other: 'bg-gray-100 text-gray-800',
+  stock: 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40',
+  etf: 'bg-teal-950/70 text-teal-300 border border-teal-500/40',
+  crypto: 'bg-lime-950/70 text-lime-300 border border-lime-500/40',
+  other: 'bg-zinc-900/70 text-zinc-300 border border-zinc-500/40',
+}
+
+const ASSET_TYPE_KEYS: Record<Investment['assetType'], MessageKey> = {
+  stock: 'invTypeStock',
+  etf: 'invTypeEtf',
+  crypto: 'invTypeCrypto',
+  other: 'invTypeOther',
 }
 
 export function InvestmentsView({ investments, onAdd, onUpdatePrice, onDelete }: Props) {
+  const { t, formatCurrency } = useLanguage()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editPrice, setEditPrice] = useState('')
 
@@ -41,15 +51,15 @@ export function InvestmentsView({ investments, onAdd, onUpdatePrice, onDelete }:
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('invTotalInvested')}</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{formatCurrency(totalInvested)}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Current Value</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('invCurrentValue')}</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{formatCurrency(totalCurrent)}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Gain / Loss</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('invTotalGainLoss')}</CardTitle></CardHeader>
           <CardContent>
             <p className={`text-2xl font-bold ${totalGain >= 0 ? 'text-green-600' : 'text-destructive'}`}>
               {formatCurrency(totalGain)} <span className="text-base">({gainPct.toFixed(1)}%)</span>
@@ -59,29 +69,29 @@ export function InvestmentsView({ investments, onAdd, onUpdatePrice, onDelete }:
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Add Investment</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('invAdd')}</CardTitle></CardHeader>
         <CardContent><InvestmentForm onAdd={onAdd} /></CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Portfolio</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('invPortfolio')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Shares</TableHead>
-                <TableHead className="text-right">Buy Price</TableHead>
-                <TableHead className="text-right">Current Price</TableHead>
-                <TableHead className="text-right">Value</TableHead>
-                <TableHead className="text-right">Gain / Loss</TableHead>
+                <TableHead>{t('invColName')}</TableHead>
+                <TableHead>{t('invColType')}</TableHead>
+                <TableHead className="text-right">{t('invColShares')}</TableHead>
+                <TableHead className="text-right">{t('invColBuyPrice')}</TableHead>
+                <TableHead className="text-right">{t('invColCurrentPrice')}</TableHead>
+                <TableHead className="text-right">{t('invColValue')}</TableHead>
+                <TableHead className="text-right">{t('invColGainLoss')}</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {investments.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">No investments yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">{t('invEmpty')}</TableCell></TableRow>
               )}
               {investments.map(inv => {
                 const gain = (inv.currentPrice - inv.purchasePrice) * inv.shares
@@ -91,7 +101,7 @@ export function InvestmentsView({ investments, onAdd, onUpdatePrice, onDelete }:
                     <TableCell className="font-medium">{inv.name}</TableCell>
                     <TableCell>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ASSET_TYPE_COLORS[inv.assetType]}`}>
-                        {inv.assetType}
+                        {t(ASSET_TYPE_KEYS[inv.assetType])}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">{inv.shares}</TableCell>
@@ -106,7 +116,7 @@ export function InvestmentsView({ investments, onAdd, onUpdatePrice, onDelete }:
                             onChange={e => setEditPrice(e.target.value)}
                             autoFocus
                           />
-                          <Button size="sm" className="h-7 px-2" onClick={() => handlePriceSave(inv.id)}>OK</Button>
+                          <Button size="sm" className="h-7 px-2" onClick={() => handlePriceSave(inv.id)}>{t('invOk')}</Button>
                         </div>
                       ) : (
                         <button

@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { formatCurrency } from '@/lib/utils'
+import { useLanguage } from '@/i18n/LanguageContext'
 import type { BudgetCategory, Transaction } from '@/types'
 
 type Props = {
@@ -12,7 +12,8 @@ type Props = {
 }
 
 export function BudgetCategoryCard({ category, transactions, onDelete }: Props) {
-  const spent = transactions.filter(t => t.categoryId === category.id).reduce((s, t) => s + t.amount, 0)
+  const { t, formatCurrency } = useLanguage()
+  const spent = transactions.filter(tx => tx.categoryId === category.id).reduce((s, tx) => s + tx.amount, 0)
   const pct = Math.min(100, (spent / category.budgeted) * 100)
   const over = spent > category.budgeted
 
@@ -21,7 +22,7 @@ export function BudgetCategoryCard({ category, transactions, onDelete }: Props) 
       <div className="flex items-center justify-between">
         <span className="font-medium">{category.name}</span>
         <div className="flex items-center gap-2">
-          {over && <Badge variant="destructive">Over budget</Badge>}
+          {over && <Badge variant="destructive">{t('budgetOverBudget')}</Badge>}
           <span className="text-sm text-muted-foreground">
             {formatCurrency(spent)} / {formatCurrency(category.budgeted)}
           </span>
