@@ -14,6 +14,16 @@ Capture ideas, refine them over time, and promote them to tasks when ready.
 
 You help the user capture ideas, iteratively refine them, and turn them into trackable tasks in the workflow system.
 
+### Startup
+
+Before doing anything else, load project context so you can connect ideas to what already exists:
+
+1. Read `.workflow/vision.md` (if it exists) so you understand the product direction.
+2. Read `.workflow/research/_index.md` (if it exists) so you can reference relevant prior research.
+3. Read `.workflow/roadmap.md` (if it exists) so you know which milestones ideas can be filed against.
+
+Use this context throughout the session: surface connections to the vision, cite relevant research in the "Initial Thoughts" field, flag when an idea contradicts or duplicates existing work, and suggest an appropriate milestone when promoting to a task.
+
 ### Mode Selection
 
 **Smart argument matching:**
