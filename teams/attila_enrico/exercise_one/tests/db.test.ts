@@ -56,13 +56,40 @@ describe("db", () => {
     await addTransaction({
       id: "t1", userId: "u1", kind: "expense",
       amount: 10, title: "A", timestamp: "2026-04-20T00:00:00.000Z", category: "Groceries",
+      source: "user",
     });
     await addTransaction({
       id: "t2", userId: "u1", kind: "income",
       amount: 100, title: "B", timestamp: "2026-04-21T00:00:00.000Z", category: "Salary",
+      source: "user",
     });
     const list = await listTransactionsByUser("u1");
     expect(list.map((t: { id: string }) => t.id)).toEqual(["t2", "t1"]);
+  });
+
+  it("backfills `source: \"user\"` on a legacy on-disk row that omits the field", async () => {
+    // Simulate a pre-schema-extension db.json: a transaction row without `source`.
+    // Zod's `.default(\"user\")` on TransactionSchema should populate it during parse.
+    await fs.mkdir(path.dirname(tmpPath), { recursive: true });
+    const legacyDb = {
+      users: [],
+      transactions: [
+        {
+          id: "legacy-1",
+          userId: "u1",
+          kind: "expense",
+          amount: 10,
+          title: "Legacy row",
+          timestamp: "2026-04-20T00:00:00.000Z",
+          category: "Groceries",
+        },
+      ],
+    };
+    await fs.writeFile(tmpPath, JSON.stringify(legacyDb, null, 2), "utf8");
+    const { readDb } = await freshModule();
+    const db = await readDb();
+    expect(db.transactions).toHaveLength(1);
+    expect(db.transactions[0].source).toBe("user");
   });
 
   it("looks up a user by lowercased email", async () => {
