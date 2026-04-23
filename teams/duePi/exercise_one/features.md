@@ -8,7 +8,7 @@ Legend: `[ ]` pending · `[~]` in-progress · `[x]` done
 
 ### Must have
 - [ ] **track-income** — Record income entries with `amount`, `date`, `category` (e.g. `salary`).
-- [ ] **track-expenses** — Record expense entries with `amount`, `date`, `category` (e.g. `food`, `rents`, `transport`).
+- [x] **track-expenses** — Record expense entries with `amount`, `date`, `category` (e.g. `food`, `rents`, `transport`).
 - [ ] **list-entries** — View all income and expense entries in one place.
 - [ ] **filter-by-category** — Narrow the entry list to one or more categories.
 - [ ] **filter-by-date-range** — Narrow the entry list to a date range.
