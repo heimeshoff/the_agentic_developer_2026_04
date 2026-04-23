@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-04-23 12:23 -- Idea Captured: CSV import
+
+**Type:** Idea Capture
+**Mode:** Quick
+**Filed to:** ideas/2026-04-23-csv-import.md
+
+---
+
 ## 2026-04-23 11:56 -- Idea Captured: Visual prototype — zero-day dashboard + category levers
 
 **Type:** Idea Capture

@@ -331,6 +331,243 @@
     color: var(--accent);
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
   }
+
+  /* View switcher */
+  .view-switch {
+    display: inline-flex;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-right: 8px;
+  }
+  .view-switch button {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .view-switch button.active {
+    background: var(--accent);
+    color: #1a1410;
+  }
+  .view-switch button:hover:not(.active) {
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Workflow (flowchart) view */
+  #flowview { display: none; padding: 32px; overflow: auto; }
+  #flowview.active { display: block; }
+  #board.hidden { display: none; }
+
+  .flow-title {
+    text-align: center;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .flow-subtitle {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 28px;
+  }
+  .flow-subtitle em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  /* Graph: nodes + SVG edges overlaid */
+  .flow-graph-wrap {
+    max-width: 1040px;
+    margin: 0 auto 8px;
+  }
+  .flow-graph {
+    position: relative;
+    aspect-ratio: 1000 / 380;
+    min-width: 720px;
+  }
+  .flow-edges {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .flow-edges .edge-label {
+    font: 600 11px -apple-system, "Segoe UI", system-ui, sans-serif;
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 4;
+    stroke-linejoin: round;
+  }
+  .flow-edges .edge-label.main { fill: #cbd0dc; }
+  .flow-edges .edge-label.side { fill: #7dd3fc; font-style: italic; font-weight: 500; font-size: 10.5px; }
+  .flow-edges .edge-label.fb   { fill: #8a93a6; font-style: italic; font-weight: 500; font-size: 10.5px; }
+
+  .gnode {
+    position: absolute;
+    width: 17%;
+    box-sizing: border-box;
+    transform: translate(-50%, -50%);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 10px;
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .gnode:hover {
+    border-color: var(--accent);
+    transform: translate(-50%, calc(-50% - 2px));
+  }
+  .gnode.think { border-left-color: #a855f7; }
+  .gnode.learn { border-left-color: #38bdf8; }
+  .gnode.plan  { border-left-color: var(--accent); }
+  .gnode.build { border-left-color: var(--done); }
+  .gnode .phase {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .gnode .cmd {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .gnode.think .cmd { color: #c084fc; }
+  .gnode.learn .cmd { color: #7dd3fc; }
+  .gnode.plan  .cmd { color: var(--accent); }
+  .gnode.build .cmd { color: #6ee7a5; }
+  .gnode .artifact {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .gnode .chip {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  }
+
+  .flow-legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 8px 0 24px;
+    flex-wrap: wrap;
+  }
+  .flow-legend .sw {
+    display: inline-block;
+    width: 28px;
+    height: 0;
+    vertical-align: middle;
+    margin-right: 6px;
+    border-top-width: 2px;
+    border-top-style: solid;
+  }
+  .flow-legend .sw.solid  { border-top-color: #cbd0dc; }
+  .flow-legend .sw.dashed { border-top-color: #38bdf8; border-top-style: dashed; }
+  .flow-legend .sw.dotted { border-top-color: #8a93a6; border-top-style: dotted; border-top-width: 3px; }
+
+  /* Protocol sink */
+  .protocol-sink {
+    max-width: 1040px;
+    margin: 40px auto 0;
+    background: var(--panel);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+  }
+  .protocol-sink::before {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: -24px;
+    height: 24px;
+    border-left: 1px dashed var(--border);
+    border-right: 1px dashed var(--border);
+    border-top: 1px dashed var(--border);
+    border-radius: 8px 8px 0 0;
+    pointer-events: none;
+  }
+  .protocol-sink .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+  }
+  .protocol-sink .file {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .protocol-sink .desc {
+    color: var(--muted);
+    font-size: 13px;
+    flex: 1;
+  }
+
+  .flow-rules {
+    max-width: 1040px;
+    margin: 28px auto 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .rule {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .rule strong { color: var(--text); }
+
+  @media (max-width: 900px) {
+    .flow-graph-wrap { overflow-x: auto; }
+    .protocol-sink::before { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -339,6 +576,10 @@
   <h1>WORKFLOW</h1>
   <span id="folderName"></span>
   <div class="spacer"></div>
+  <div class="view-switch" role="tablist">
+    <button id="viewBoardBtn" class="active" role="tab" aria-selected="true">Board</button>
+    <button id="viewFlowBtn" role="tab" aria-selected="false">Workflow</button>
+  </div>
   <button id="refreshBtn" class="ghost" style="display:none">Refresh</button>
   <button id="openBtn">Open .workflow folder</button>
 </header>
@@ -366,6 +607,95 @@
   <section id="board">
     <div class="placeholder" id="boardPlaceholder">
       Click <strong>Open .workflow folder</strong> and pick a <code>.workflow</code> directory to begin. Drag cards between columns to move tasks on disk.
+    </div>
+  </section>
+
+  <section id="flowview">
+    <div class="flow-title">The Pipeline</div>
+    <h2 class="flow-subtitle"><em>think</em> &rarr; <em>learn</em> &rarr; <em>plan</em> &rarr; <em>build</em></h2>
+
+    <div class="flow-graph-wrap">
+      <div class="flow-graph" role="img" aria-label="Workflow graph. /brainstorm flows to /capture, /capture flows to /work. /research is a side-input that feeds /brainstorm, /capture, and /work. /work can feed back into /capture when it spots missing work.">
+        <svg class="flow-edges" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <marker id="arrowMain" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#cbd0dc"/>
+            </marker>
+            <marker id="arrowSide" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+            </marker>
+            <marker id="arrowFb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a93a6"/>
+            </marker>
+          </defs>
+
+          <!-- Main forward flow: /brainstorm -> /capture -> /work -->
+          <line x1="200" y1="240" x2="418" y2="240" stroke="#cbd0dc" stroke-width="2.5" marker-end="url(#arrowMain)"/>
+          <line x1="580" y1="240" x2="798" y2="240" stroke="#cbd0dc" stroke-width="2.5" marker-end="url(#arrowMain)"/>
+
+          <!-- Side-inputs: /research feeds /brainstorm, /capture, /work -->
+          <line x1="500" y1="100" x2="500" y2="203" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowSide)"/>
+          <path d="M 432 92 Q 270 140, 126 204" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowSide)"/>
+          <path d="M 568 92 Q 730 140, 874 204" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowSide)"/>
+
+          <!-- Feedback: /work spots missing work and routes to /capture -->
+          <path d="M 858 280 Q 690 360, 522 280" fill="none" stroke="#8a93a6" stroke-width="1.4" stroke-dasharray="2 4" marker-end="url(#arrowFb)"/>
+
+          <!-- Edge labels -->
+          <text x="309" y="230" text-anchor="middle" class="edge-label main">vision &amp; scope</text>
+          <text x="689" y="230" text-anchor="middle" class="edge-label main">ready tasks</text>
+          <text x="510" y="152" text-anchor="start"  class="edge-label side">findings</text>
+          <text x="245" y="130" text-anchor="middle" class="edge-label side">context</text>
+          <text x="755" y="130" text-anchor="middle" class="edge-label side">references</text>
+          <text x="690" y="348" text-anchor="middle" class="edge-label fb">gaps spotted &rarr; new captures</text>
+        </svg>
+
+        <div class="gnode learn" style="left:50%; top:14%;">
+          <span class="chip" data-flow-count="research">&mdash;</span>
+          <div class="phase">Learn</div>
+          <div class="cmd">/research</div>
+          <div class="artifact">research/*.md</div>
+        </div>
+        <div class="gnode think" style="left:12%; top:63%;">
+          <span class="chip" data-flow-count="vision">&mdash;</span>
+          <div class="phase">Think</div>
+          <div class="cmd">/brainstorm</div>
+          <div class="artifact">vision.md</div>
+        </div>
+        <div class="gnode plan" style="left:50%; top:63%;">
+          <span class="chip" data-flow-count="ideas">&mdash;</span>
+          <div class="phase">Plan</div>
+          <div class="cmd">/capture</div>
+          <div class="artifact">ideas/ &middot; tasks/</div>
+        </div>
+        <div class="gnode build" style="left:88%; top:63%;">
+          <span class="chip" data-flow-count="in-progress">&mdash;</span>
+          <div class="phase">Build</div>
+          <div class="cmd">/work</div>
+          <div class="artifact">tasks/done</div>
+        </div>
+      </div>
+
+      <div class="flow-legend">
+        <span><span class="sw solid"></span>forward flow</span>
+        <span><span class="sw dashed"></span>research feeds in</span>
+        <span><span class="sw dotted"></span>feedback: work &rarr; capture</span>
+      </div>
+    </div>
+
+    <div class="protocol-sink">
+      <div>
+        <div class="label">Every stage prepends to</div>
+        <div class="file">protocol.md<span class="count" data-flow-count="protocol" style="margin-left:8px;color:var(--muted);font-size:12px;">&mdash;</span></div>
+      </div>
+      <div class="desc">Append-only audit trail. The facilitator reads this after the workshop to compare how each team worked with their agent.</div>
+    </div>
+
+    <div class="flow-rules">
+      <div class="rule"><strong>Skip stages when they don&rsquo;t apply.</strong> A trivial tweak can go straight to <code>/work</code>; an obvious idea doesn&rsquo;t need <code>/research</code>.</div>
+      <div class="rule"><strong>Don&rsquo;t cross stage boundaries.</strong> <code>/brainstorm</code> and <code>/research</code> never write code. <code>/work</code> never invents new tasks.</div>
+      <div class="rule"><strong>One task, one commit.</strong> The git log should line up with <code>protocol.md</code>.</div>
+      <div class="rule"><strong>Read before you code.</strong> <code>/work</code> reads <code>vision.md</code> and referenced research before touching the implementation.</div>
     </div>
   </section>
 </main>
@@ -448,6 +778,67 @@ function attachDropzones() {
 async function refresh() {
   if (!workflowDir) return;
   await Promise.all([loadVision(), loadResearch(), loadIdeas(), loadProtocol(), loadTasks()]);
+  updateFlowCounts();
+}
+
+function setFlowCount(key, value) {
+  const el = document.querySelector(`[data-flow-count="${key}"]`);
+  if (el) el.textContent = value;
+}
+
+async function updateFlowCounts() {
+  if (!workflowDir) return;
+
+  // vision.md: 1 if present, else 0
+  setFlowCount('vision', (await tryGetFile(workflowDir, 'vision.md')) ? 1 : 0);
+
+  // protocol.md: 1 if present, else 0
+  setFlowCount('protocol', (await tryGetFile(workflowDir, 'protocol.md')) ? 1 : 0);
+
+  // research/ files (exclude _index.md)
+  let researchCount = 0;
+  const researchDir = await tryGetDir(workflowDir, 'research');
+  if (researchDir) {
+    for await (const entry of researchDir.values()) {
+      if (entry.kind === 'file' && entry.name.endsWith('.md') && entry.name !== '_index.md') researchCount++;
+    }
+  }
+  setFlowCount('research', researchCount);
+
+  // ideas/*.md (top-level, exclude promoted/)
+  let ideasCount = 0;
+  const ideasDir = await tryGetDir(workflowDir, 'ideas');
+  if (ideasDir) {
+    for await (const entry of ideasDir.values()) {
+      if (entry.kind === 'file' && entry.name.endsWith('.md')) ideasCount++;
+    }
+  }
+  setFlowCount('ideas', ideasCount);
+
+  // tasks/*: reuse counts from the board column counters
+  for (const folder of TASK_FOLDERS) {
+    const counter = document.querySelector(`[data-count="${folder}"]`);
+    setFlowCount(folder, counter ? counter.textContent : 0);
+  }
+}
+
+function setView(name) {
+  const board = $('board');
+  const flow = $('flowview');
+  const bBtn = $('viewBoardBtn');
+  const fBtn = $('viewFlowBtn');
+  if (name === 'flow') {
+    board.classList.add('hidden');
+    flow.classList.add('active');
+    bBtn.classList.remove('active'); bBtn.setAttribute('aria-selected', 'false');
+    fBtn.classList.add('active');    fBtn.setAttribute('aria-selected', 'true');
+    updateFlowCounts();
+  } else {
+    flow.classList.remove('active');
+    board.classList.remove('hidden');
+    fBtn.classList.remove('active'); fBtn.setAttribute('aria-selected', 'false');
+    bBtn.classList.add('active');    bBtn.setAttribute('aria-selected', 'true');
+  }
 }
 
 async function tryGetDir(parent, name) {
@@ -612,6 +1003,8 @@ async function moveTask(name, fromFolder, toFolder) {
 
 $('openBtn').addEventListener('click', openFolder);
 $('refreshBtn').addEventListener('click', refresh);
+$('viewBoardBtn').addEventListener('click', () => setView('board'));
+$('viewFlowBtn').addEventListener('click', () => setView('flow'));
 $('viewerClose').addEventListener('click', () => $('viewer').classList.add('hidden'));
 $('viewer').addEventListener('click', (e) => {
   if (e.target.id === 'viewer') $('viewer').classList.add('hidden');
