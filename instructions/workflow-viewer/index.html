@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161922;
+    --panel-2: #1d2230;
+    --border: #262c3b;
+    --text: #e6e8ee;
+    --muted: #8a93a6;
+    --accent: #f5a524;
+    --accent-soft: rgba(245, 165, 36, 0.12);
+    --done: #38c172;
+    --in-progress: #4f8cff;
+    --todo: #f5a524;
+    --backlog: #8a93a6;
+    --raw: #8a93a6;
+    --developing: #4f8cff;
+    --ready: #38c172;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--accent);
+  }
+  header .spacer { flex: 1; }
+  header button {
+    background: var(--accent);
+    color: #1a1410;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  header button.ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  header button:hover { filter: brightness(1.1); }
+  #folderName {
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 53px);
+  }
+
+  aside {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 0;
+  }
+  aside section { margin-bottom: 18px; }
+  aside h2 {
+    margin: 0 16px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  aside ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  aside li {
+    padding: 7px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 2px solid transparent;
+  }
+  aside li:hover {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  aside li .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+  aside li .status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .status.raw { background: rgba(138, 147, 166, 0.2); color: var(--raw); }
+  .status.developing { background: rgba(79, 140, 255, 0.2); color: var(--developing); }
+  .status.ready { background: rgba(56, 193, 114, 0.2); color: var(--ready); }
+  .empty {
+    color: var(--muted);
+    font-style: italic;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 16px;
+    overflow-x: auto;
+    min-width: 0;
+  }
+  .column {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    max-height: 100%;
+  }
+  .column-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .column-header h2 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .column[data-column="backlog"] h2 { color: var(--backlog); }
+  .column[data-column="todo"] h2 { color: var(--todo); }
+  .column[data-column="in-progress"] h2 { color: var(--in-progress); }
+  .column[data-column="done"] h2 { color: var(--done); }
+  .count {
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .cards {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 100px;
+  }
+  .cards.drag-over {
+    background: var(--accent-soft);
+    outline: 2px dashed var(--accent);
+    outline-offset: -8px;
+    border-radius: 8px;
+  }
+  .card {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: grab;
+    transition: transform 0.1s, border-color 0.15s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+  }
+  .card.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  .task-id {
+    color: var(--accent);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .task-title {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  /* Markdown viewer modal */
+  #viewer {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+  #viewer.hidden { display: none; }
+  .viewer-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: min(900px, 95vw);
+    height: min(85vh, 800px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .viewer-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .viewer-header h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    flex: 1;
+  }
+  #viewerClose {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 6px;
+  }
+  #viewerClose:hover { color: var(--text); }
+  #viewerContent {
+    overflow-y: auto;
+    padding: 24px 32px;
+    flex: 1;
+  }
+
+  /* Markdown styles */
+  .markdown-body { color: var(--text); }
+  .markdown-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .markdown-body h2 { font-size: 19px; margin-top: 28px; }
+  .markdown-body h3 { font-size: 16px; margin-top: 22px; }
+  .markdown-body code {
+    background: var(--panel-2);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12.5px;
+  }
+  .markdown-body pre {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  .markdown-body pre code { background: transparent; padding: 0; }
+  .markdown-body a { color: var(--accent); }
+  .markdown-body blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 0;
+    padding: 4px 14px;
+    color: var(--muted);
+    background: var(--accent-soft);
+    border-radius: 0 4px 4px 0;
+  }
+  .markdown-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+  }
+  .markdown-body th, .markdown-body td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+  }
+  .markdown-body th { background: var(--panel-2); }
+  .markdown-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--muted);
+    font-size: 15px;
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 32px;
+  }
+  .placeholder code {
+    background: var(--panel-2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>WORKFLOW</h1>
+  <span id="folderName"></span>
+  <div class="spacer"></div>
+  <button id="refreshBtn" class="ghost" style="display:none">Refresh</button>
+  <button id="openBtn">Open .workflow folder</button>
+</header>
+
+<main>
+  <aside id="sidebar">
+    <section>
+      <h2>Vision</h2>
+      <ul id="visionList"><li class="empty">no folder loaded</li></ul>
+    </section>
+    <section>
+      <h2>Research</h2>
+      <ul id="researchList"><li class="empty">—</li></ul>
+    </section>
+    <section>
+      <h2>Ideas</h2>
+      <ul id="ideasList"><li class="empty">—</li></ul>
+    </section>
+    <section>
+      <h2>Protocol</h2>
+      <ul id="protocolList"><li class="empty">—</li></ul>
+    </section>
+  </aside>
+
+  <section id="board">
+    <div class="placeholder" id="boardPlaceholder">
+      Click <strong>Open .workflow folder</strong> and pick a <code>.workflow</code> directory to begin. Drag cards between columns to move tasks on disk.
+    </div>
+  </section>
+</main>
+
+<div id="viewer" class="hidden">
+  <div class="viewer-panel">
+    <div class="viewer-header">
+      <h2 id="viewerTitle"></h2>
+      <button id="viewerClose">&times;</button>
+    </div>
+    <div id="viewerContent" class="markdown-body"></div>
+  </div>
+</div>
+
+<script>
+const TASK_FOLDERS = ['backlog', 'todo', 'in-progress', 'done'];
+let workflowDir = null;
+
+const $ = (id) => document.getElementById(id);
+
+async function openFolder() {
+  if (!window.showDirectoryPicker) {
+    alert("This viewer needs the File System Access API (Chrome or Edge).");
+    return;
+  }
+  try {
+    workflowDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch (e) { return; /* user cancelled */ }
+
+  $('folderName').textContent = workflowDir.name;
+  $('refreshBtn').style.display = 'inline-block';
+  $('boardPlaceholder')?.remove();
+  buildBoard();
+  await refresh();
+}
+
+function buildBoard() {
+  const board = $('board');
+  board.innerHTML = '';
+  for (const folder of TASK_FOLDERS) {
+    const col = document.createElement('div');
+    col.className = 'column';
+    col.dataset.column = folder;
+    col.innerHTML = `
+      <div class="column-header">
+        <h2>${folder.replace('-', ' ')}</h2>
+        <span class="count" data-count="${folder}">0</span>
+      </div>
+      <div class="cards" data-dropzone="${folder}"></div>`;
+    board.appendChild(col);
+  }
+  attachDropzones();
+}
+
+function attachDropzones() {
+  document.querySelectorAll('[data-dropzone]').forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      let data;
+      try { data = JSON.parse(e.dataTransfer.getData('text/plain')); }
+      catch { return; }
+      const target = zone.dataset.dropzone;
+      if (data.folder === target) return;
+      try {
+        await moveTask(data.name, data.folder, target);
+      } catch (err) {
+        alert(`Could not move ${data.name}: ${err.message}`);
+      }
+      await loadTasks();
+    });
+  });
+}
+
+async function refresh() {
+  if (!workflowDir) return;
+  await Promise.all([loadVision(), loadResearch(), loadIdeas(), loadProtocol(), loadTasks()]);
+}
+
+async function tryGetDir(parent, name) {
+  try { return await parent.getDirectoryHandle(name); }
+  catch { return null; }
+}
+
+async function tryGetFile(parent, name) {
+  try { return await parent.getFileHandle(name); }
+  catch { return null; }
+}
+
+function setEmpty(ul, msg) {
+  ul.innerHTML = `<li class="empty">${msg}</li>`;
+}
+
+async function loadVision() {
+  const list = $('visionList');
+  list.innerHTML = '';
+  const fh = await tryGetFile(workflowDir, 'vision.md');
+  if (!fh) return setEmpty(list, 'no vision.md');
+  list.appendChild(makeSidebarItem('vision.md', () => openFile(['vision.md'], 'vision.md')));
+}
+
+async function loadResearch() {
+  const list = $('researchList');
+  list.innerHTML = '';
+  const dir = await tryGetDir(workflowDir, 'research');
+  if (!dir) return setEmpty(list, 'no research/');
+  let any = false;
+  for await (const entry of dir.values()) {
+    if (entry.kind === 'file' && entry.name.endsWith('.md') && entry.name !== '_index.md') {
+      any = true;
+      list.appendChild(makeSidebarItem(entry.name, () => openFile(['research', entry.name], entry.name)));
+    }
+  }
+  if (!any) setEmpty(list, 'no research files');
+}
+
+async function loadIdeas() {
+  const list = $('ideasList');
+  list.innerHTML = '';
+  const dir = await tryGetDir(workflowDir, 'ideas');
+  if (!dir) return setEmpty(list, 'no ideas/');
+  const items = [];
+  for await (const entry of dir.values()) {
+    if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+      const file = await entry.getFile();
+      const text = await file.text();
+      const status = (text.match(/\*\*Status:\*\*\s*(\w+)/) || [])[1] || '';
+      items.push({ name: entry.name, status });
+    }
+  }
+  if (!items.length) return setEmpty(list, 'no ideas');
+  items.sort((a, b) => b.name.localeCompare(a.name));
+  for (const it of items) {
+    list.appendChild(makeSidebarItem(it.name, () => openFile(['ideas', it.name], it.name), it.status));
+  }
+}
+
+async function loadProtocol() {
+  const list = $('protocolList');
+  list.innerHTML = '';
+  const fh = await tryGetFile(workflowDir, 'protocol.md');
+  if (!fh) return setEmpty(list, 'no protocol.md');
+  list.appendChild(makeSidebarItem('protocol.md', () => openFile(['protocol.md'], 'protocol.md')));
+}
+
+function makeSidebarItem(name, onClick, status) {
+  const li = document.createElement('li');
+  const span = document.createElement('span');
+  span.className = 'name';
+  span.textContent = name;
+  li.appendChild(span);
+  if (status) {
+    const badge = document.createElement('span');
+    badge.className = `status ${status.toLowerCase()}`;
+    badge.textContent = status;
+    li.appendChild(badge);
+  }
+  li.addEventListener('click', onClick);
+  return li;
+}
+
+async function loadTasks() {
+  const tasksDir = await tryGetDir(workflowDir, 'tasks');
+  for (const folder of TASK_FOLDERS) {
+    const container = document.querySelector(`[data-dropzone="${folder}"]`);
+    const counter = document.querySelector(`[data-count="${folder}"]`);
+    container.innerHTML = '';
+    if (!tasksDir) { counter.textContent = '0'; continue; }
+    const dir = await tryGetDir(tasksDir, folder);
+    if (!dir) { counter.textContent = '0'; continue; }
+    const cards = [];
+    for await (const entry of dir.values()) {
+      if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+        cards.push(entry.name);
+      }
+    }
+    cards.sort();
+    counter.textContent = cards.length;
+    for (const name of cards) {
+      container.appendChild(createTaskCard(name, folder));
+    }
+  }
+}
+
+function createTaskCard(name, folder) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.draggable = true;
+  card.dataset.name = name;
+  card.dataset.folder = folder;
+
+  const baseName = name.replace(/\.md$/, '');
+  const match = baseName.match(/^(\d+)-(.+)$/);
+  if (match) {
+    const title = match[2].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    card.innerHTML = `<span class="task-id">${match[1]}</span><span class="task-title">${title}</span>`;
+  } else {
+    card.innerHTML = `<span class="task-title">${baseName}</span>`;
+  }
+
+  card.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ name, folder }));
+    e.dataTransfer.effectAllowed = 'move';
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  card.addEventListener('click', () => openFile(['tasks', folder, name], `${folder}/${name}`));
+
+  return card;
+}
+
+async function openFile(pathParts, title) {
+  let handle = workflowDir;
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    handle = await handle.getDirectoryHandle(pathParts[i]);
+  }
+  const fileHandle = await handle.getFileHandle(pathParts[pathParts.length - 1]);
+  const file = await fileHandle.getFile();
+  const text = await file.text();
+  $('viewerTitle').textContent = title;
+  $('viewerContent').innerHTML = marked.parse(text, { gfm: true, breaks: false });
+  $('viewer').classList.remove('hidden');
+}
+
+async function moveTask(name, fromFolder, toFolder) {
+  const tasksDir = await workflowDir.getDirectoryHandle('tasks');
+  const fromDir = await tasksDir.getDirectoryHandle(fromFolder);
+  const fromFile = await fromDir.getFileHandle(name);
+  const text = await (await fromFile.getFile()).text();
+
+  const toDir = await tasksDir.getDirectoryHandle(toFolder, { create: true });
+  const toFile = await toDir.getFileHandle(name, { create: true });
+  const writable = await toFile.createWritable();
+  await writable.write(text);
+  await writable.close();
+
+  await fromDir.removeEntry(name);
+}
+
+$('openBtn').addEventListener('click', openFolder);
+$('refreshBtn').addEventListener('click', refresh);
+$('viewerClose').addEventListener('click', () => $('viewer').classList.add('hidden'));
+$('viewer').addEventListener('click', (e) => {
+  if (e.target.id === 'viewer') $('viewer').classList.add('hidden');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') $('viewer').classList.add('hidden');
+});
+</script>
+</body>
+</html>

@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-04-23 11:56 -- Idea Captured: Visual prototype — zero-day dashboard + category levers
+
+**Type:** Idea Capture
+**Mode:** Deep
+**Filed to:** tasks/todo/001-visual-prototype-dashboard.md
+**Summary:** Foundation-style React + TypeScript + Vite + Tailwind prototype scoped to the two differentiating features (zero-day dashboard + live category levers). Hardcoded mock data, no persistence, no CSV, no categorizer. Doubles as a cheap answer to the vision's tech-stack open question — localhost web first, Tauri wrap later if the concept earns it.
+
+---
+
 ## 2026-04-23 11:24 -- Brainstorm: Runway app (Exercise One kickoff)
 
 **Type:** Brainstorm
