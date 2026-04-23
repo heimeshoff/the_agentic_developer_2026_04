@@ -29,4 +29,41 @@ class DebtTest {
         assertThatThrownBy(() -> new Debt(null))
                 .isInstanceOf(NullPointerException.class);
     }
+
+    @Test
+    void increasedByGrowsBalance() {
+        Debt before = new Debt(new BigDecimal("100.00"));
+
+        Debt after = before.increasedBy(new BigDecimal("12.50"));
+
+        assertThat(after.balance()).isEqualByComparingTo("112.50");
+    }
+
+    @Test
+    void increasedByReturnsNewInstance() {
+        Debt before = new Debt(new BigDecimal("100.00"));
+
+        Debt after = before.increasedBy(new BigDecimal("1"));
+
+        assertThat(after).isNotSameAs(before);
+        assertThat(before.balance()).isEqualByComparingTo("100.00");
+    }
+
+    @Test
+    void increasedByRejectsZero() {
+        assertThatThrownBy(() -> new Debt(new BigDecimal("100")).increasedBy(BigDecimal.ZERO))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void increasedByRejectsNegative() {
+        assertThatThrownBy(() -> new Debt(new BigDecimal("100")).increasedBy(new BigDecimal("-1")))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void increasedByRejectsNull() {
+        assertThatThrownBy(() -> new Debt(new BigDecimal("100")).increasedBy(null))
+                .isInstanceOf(NullPointerException.class);
+    }
 }
