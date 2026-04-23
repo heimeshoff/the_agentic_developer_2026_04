@@ -28,6 +28,23 @@ When working on exercise code, write files under `teams/<team-name>/exercise_<n>
 
 Additional exercises may be added to `instructions/` during the workshop.
 
+## Prototypical workflow
+
+When implementing anything non-trivial, drive the work through the four custom skills defined in `instructions/.claude/skills/`. They share a `.workflow/` folder (living inside the team's exercise directory) and every stage prepends to `.workflow/protocol.md`, which is the append-only audit trail the facilitator reads after the workshop.
+
+The pipeline is **think → learn → plan → build**:
+
+1. **`/brainstorm`** — Clarify the product vision through Socratic dialogue. Output: `.workflow/vision.md`. No code.
+2. **`/research`** — Investigate unknowns (feasibility, domain, prior art). Output: `.workflow/research/<topic>.md` plus a row in `research/_index.md`.
+3. **`/capture`** — Turn ideas into trackable work. Raw ideas land in `.workflow/ideas/` and progress `Raw → Developing → Ready` before being promoted into task files in `.workflow/tasks/todo/` (soon) or `.workflow/tasks/backlog/` (later). Each task has acceptance criteria and optional dependencies.
+4. **`/work`** — Pull the next task, implement it, commit. Tasks move `todo/` → `in-progress/` → `done/`, one task per commit, with a Work Log appended to the task file.
+
+Guidelines:
+- **Skip stages when they don't apply.** A trivial tweak can go straight to `/work`; an obvious idea doesn't need `/research`. But when you're tempted to invent a different workflow, prefer this one.
+- **Don't cross stage boundaries.** `/brainstorm` and `/research` never write code. `/work` never invents new tasks — if it spots missing work, it notes it and suggests `/capture`.
+- **One task, one commit.** The git log should line up with `protocol.md`.
+- **Read before you code.** `/work` reads `vision.md` and any `.workflow/research/` files the task references before touching the implementation.
+
 ## What does NOT exist here
 
 - No build, test, or lint commands at the repo level — each team's exercise folder may introduce its own tooling, and any commands live inside that folder.
