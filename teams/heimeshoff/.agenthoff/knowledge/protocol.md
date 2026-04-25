@@ -5,6 +5,20 @@ Newest entries on top.
 
 ---
 
+## 2026-04-25 -- Model / Captured: forecasting-001 - Frontend prompting strategy for claude.ai/design
+
+**Type:** Model / Capture
+**BC:** forecasting (cross-cutting — touches all four BCs)
+**Filed to:** backlog
+**Summary:** Captured a five-prompt strategy for generating the frontend via
+claude.ai/design: a design-system-and-shell prompt first, then one prompt
+per bounded context (Dashboard / Income / Expenses / Taxes). Recorded as a
+`decision`-type task; will produce an ADR when worked. Verbatim draft prompts
+are stored in the task's Notes section pending validation against
+claude.ai/design.
+
+---
+
 ## 2026-04-25 -- Brainstorm: Personal Cashflow Tool
 
 **Type:** Brainstorm
