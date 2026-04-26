@@ -63,15 +63,26 @@ re-establishing one.
 
 ## Notes
 
-### Open questions before this is ready to work
+### Resolved decisions (open questions settled at refinement)
 
-- Should Prompts 1–4 reference the Prompt 0 output by URL/screenshot, or
-  re-state the constraints in plain text? (claude.ai/design's ability to carry
-  state across prompts in the same project should be confirmed.)
-- Do we want a sixth prompt for the CSV-import wizard as its own flow, or is
-  it small enough to live inside Prompt 3?
-- The Sankey is treated as a first-class component in Prompt 1. Some Sankey
-  libraries don't render well in claude.ai/design's preview — fallback?
+- **State carry-across between prompts:** Re-state core constraints
+  (ubiquitous language list, tone rules, navigation order) in plain text
+  at the top of every prompt. Tools that promise project-level state-carry
+  are unreliable enough that explicit re-statement is the cheap insurance.
+  Concretely: the first ~10 lines of each of Prompts 1–4 repeat the
+  language list and the "no goals/targets/progress bars" rule from Prompt 0.
+- **CSV-import wizard scope:** Keep inside Prompt 3. The interaction surface
+  (one button + an inline classifier dialog with a "Apply to similar" check)
+  is small. Splitting it would force two prompts to share Cash Outflow's
+  category-tree language, which is the opposite of what one-prompt-per-BC
+  is for.
+- **Sankey library + fallback:** Use **Recharts** (`<Sankey>` component)
+  in the prompt because it has the highest probability of rendering in
+  claude.ai/design's preview. If preview fails, the prompt instructs the
+  tool to render a static labeled block-flow placeholder so the layout is
+  visible. Production may swap to **d3-sankey** wrapped in a React component
+  if Recharts proves limiting; the ADR records this as an
+  implementation-stack choice (separate from the design-prompt strategy).
 
 ### Verbatim draft prompts
 
