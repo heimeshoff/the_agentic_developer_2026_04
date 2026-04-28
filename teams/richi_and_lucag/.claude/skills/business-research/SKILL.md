@@ -1,11 +1,23 @@
 ---
 name: business-research
-description: Structured business research for the homeowner-fintech personal finance product. Invoke with /business-research. Supports two modes — (1) competitive analysis: maps the competitor landscape, features, pricing, and positioning gaps; (2) customer journey: traces the homeowner's financial path, pain points, decision triggers, and emotional states. Delegates web searches to multiple parallel specialized agents for depth and speed. Always produces an unopinionated research.md artifact saved to the team's session folder. Use this skill whenever market intelligence, competitor data, user journey insight, or factual grounding is needed before making a product decision — even if the user doesn't say "research" explicitly.
+description: Structured business research for this team. Invoke with /business-research. Reads memory/project/INDEX.md to learn the active project and grounds in the active vision/research artifacts. Supports two modes — (1) competitive analysis: maps the competitor landscape, features, pricing, and positioning gaps; (2) customer journey: traces the target user's path, pain points, decision triggers, and emotional states. Delegates web searches to multiple parallel specialized agents. Always produces an unopinionated research.md artifact saved to the active session folder. Use whenever market intelligence, competitor data, user journey insight, or factual grounding is needed before making a product decision.
 ---
 
 # Business Research
 
 Produces an unopinionated `research.md` artifact by combining a short user interview with parallel web research agents.
+
+## Memory Read Contract
+
+Required reads on entry:
+1. `memory/project/INDEX.md` — canonical pointers + session lifecycle.
+2. `memory/task/state.md` — current phase, active session, blockers.
+3. The specific canonical artifact path(s) this skill grounds in, resolved from INDEX.
+
+Rules:
+- Always resolve artifact paths through INDEX. Do not fuzzy-find via `find`.
+- If INDEX is missing or points to a missing file, stop and tell the user to run `/reindex`. Do not silently fall back to globbing.
+- The active session is whichever session has `status: active` in INDEX. Never use date-affinity heuristics.
 
 ## Flow
 
@@ -20,7 +32,7 @@ MODE DETECTION → INTERVIEW → PARALLEL RESEARCH AGENTS → SYNTHESIS → SAVE
 Detect the research mode from the invocation prompt:
 
 - **competitive-analysis** — competitor landscape, features, pricing, positioning, gaps
-- **customer-journey** — homeowner's path through financial management: pain points, triggers, emotional states, existing tool behavior
+- **customer-journey** — target user's path through the problem space: pain points, triggers, emotional states, existing tool behavior
 
 If the mode is absent or ambiguous, ask before proceeding. Do not guess.
 
@@ -33,11 +45,11 @@ Before searching the web, interview the user. Keep it to **3–5 questions**. Th
 **For competitive-analysis:**
 1. Which competitors are already on your radar, if any?
 2. What angle matters most — features, pricing, positioning, UX, or something else?
-3. Any specific homeowner sub-segment to focus on? (e.g., first-time buyers, long-term owners, investors)
+3. Any specific user sub-segment to focus on?
 
 **For customer-journey:**
-1. Which homeowner segment? (e.g., first-time buyer, long-term owner, landlord)
-2. Which stage of the journey? (awareness of a problem, active tracking, distress/repair event, refinancing decision)
+1. Which user segment?
+2. Which stage of the journey? (awareness, active use, distress moment, decision point)
 3. What moment or pain point are you most curious about?
 
 Wait for the user's answers before proceeding.
@@ -54,7 +66,7 @@ Read the mode-specific agent briefs now:
 
 Each brief defines exactly which agents to spawn and what to pass each one. When calling each agent, include:
 - The user's interview answers as context
-- The domain context: *personal finance app for homeowners focused on surfacing savings opportunities — refinancing signals, insurance comparison, subscription creep, energy bills, maintenance costs*
+- The product context derived from the active `vision.md` (resolved via INDEX) — quote directly from vision rather than paraphrasing
 - The specific research question for that agent (not a generic "research X")
 
 Use `web-search-researcher` as the subagent type for all research agents.
@@ -72,20 +84,37 @@ Once all agents return, synthesize their findings into a single `research.md`. T
 
 ---
 
-## Step 5: Save artifact
+## Step 5: Save artifact (Memory Write Transaction)
 
-Save to:
+Write order, no skipping:
+
+1. Save `research.md` inside the active session folder resolved from INDEX:
+   `<active-session-folder>/research.md`. If a `research.md` already exists for the active session, propose the new one as `research-<scope-slug>.md` rather than overwriting silently.
+2. Verify the file exists and is non-empty.
+3. Update `memory/project/INDEX.md`:
+   - Bump the `research` row in canonical artifacts to point at the new file.
+   - Set `Canonical artifact set complete` based on the full table.
+   - Refresh `Last reindex` date if you also reconciled disk state.
+4. Replace `memory/task/state.md` wholesale with the new snapshot (phase = post-research, next action = `/domain`).
+5. Run the Decision Gate. Append qualifying entries to `memory/project/decisions.md`.
+6. Output any glossary candidates as a `## Glossary Proposals` section in the final response. Do not edit `glossary.md`.
+
+If any step after step 1 fails or is skipped, the final response must say:
+> Memory drift possible. Run `/reindex` to reconcile.
+
+---
+
+## Step 6: Decision candidates
+
+End the session with this block:
 
 ```
-exercise_one/YYYY-MM-DD-<scope-slug>/research.md
+Decision candidates from this session:
+1. [candidate] — append: yes/no — reason
+2. [candidate] — append: yes/no — reason
 ```
 
-- `YYYY-MM-DD` = today's date
-- `<scope-slug>` = 2–4 word kebab-case label derived from the topic (e.g., `competitor-landscape`, `first-time-buyer-journey`, `refinancing-awareness`)
-
-The path is relative to `teams/richi_and_lucag/`.
-
-Tell the user the full path once saved.
+A candidate qualifies (`append: yes`) only if it is irreversible/expensive to reverse, affects product/domain/architecture/workflow, has an explicit *why*, and forecloses at least one alternative. Pure facts and source URLs do not qualify — they are research output, not decisions.
 
 ---
 
@@ -97,6 +126,7 @@ Adapt sections to what was actually found. Drop sections with nothing useful; ad
 # Research: [Topic]
 
 _Date: YYYY-MM-DD | Mode: [competitive-analysis | customer-journey]_
+_Grounded in: [relative path to vision.md from INDEX]_
 
 ---
 

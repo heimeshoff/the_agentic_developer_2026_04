@@ -1,20 +1,32 @@
 ---
 name: research
-description: General-purpose research skill for the homeowner-fintech personal finance product. Invoke with /research. Complements /business-research (which covers competitive analysis and customer journeys) by handling technical, regulatory, UX pattern, and open-ended topic research. Reads vision.md as grounding context. Always produces an unopinionated research.md artifact. Use when the team needs depth on a topic that is not a competitor landscape or customer journey map.
+description: General-purpose research skill for this team. Invoke with /research. Reads memory/project/INDEX.md to learn the active project and grounds in the active vision. Complements /business-research (which covers competitive analysis and customer journeys) by handling technical, regulatory, UX pattern, and open-ended topic research. Always produces an unopinionated research.md artifact saved to the active session folder. Use when the team needs depth on a topic that is not a competitor landscape or customer journey map.
 ---
 
 # Research
 
-Produces an unopinionated `research.md` artifact on any topic relevant to the homeowner personal finance product.
+Produces an unopinionated `research.md` artifact on any topic relevant to the active project.
+
+## Memory Read Contract
+
+Required reads on entry:
+1. `memory/project/INDEX.md` — canonical pointers + session lifecycle.
+2. `memory/task/state.md` — current phase, active session, blockers.
+3. The active `vision.md` (resolved from INDEX). If absent, stop and ask the user whether to proceed without grounding.
+
+Rules:
+- Always resolve artifact paths through INDEX. Do not fuzzy-find via `find`.
+- If INDEX is missing or points to a missing file, stop and tell the user to run `/reindex`. Do not silently fall back to globbing.
+- The active session is whichever session has `status: active` in INDEX. Never use date-affinity heuristics.
 
 ## Scope vs /business-research
 
 | Use `/research` for | Use `/business-research` for |
 |---|---|
-| Technical approaches (e.g., how plaid integrations work) | Competitor feature/pricing landscape |
-| Regulatory / compliance topics (RESPA, TILA, escrow rules) | Homeowner customer journey mapping |
+| Technical approaches (e.g., how an integration works) | Competitor feature/pricing landscape |
+| Regulatory / compliance topics | Customer journey mapping |
 | UX patterns and design precedents | Positioning gaps |
-| Data sources (mortgage rates, insurance APIs) | Sub-segment targeting |
+| Data sources | Sub-segment targeting |
 | Open-ended exploratory topics | Market sizing |
 
 If the request overlaps with competitor or customer-journey territory, suggest `/business-research` instead.
@@ -24,17 +36,14 @@ If the request overlaps with competitor or customer-journey territory, suggest `
 ## Flow
 
 ```
-LOCATE VISION → MODE DETECTION → INTERVIEW → PARALLEL RESEARCH AGENTS → SYNTHESIS → SAVE
+RESOLVE VISION → MODE DETECTION → INTERVIEW → PARALLEL RESEARCH AGENTS → SYNTHESIS → SAVE
 ```
 
 ---
 
-## Step 1: Locate vision
+## Step 1: Resolve vision
 
-Find `vision.md` under `teams/richi_and_lucag/exercise_one/`. Read it silently before proceeding.
-
-- If found: use it to calibrate research scope (stay relevant to the product's problem and user).
-- If not found: proceed, but note in the output that no vision grounding was available.
+Resolve the active session's `vision.md` from INDEX and read it silently before proceeding. Use it to calibrate research scope.
 
 ---
 
@@ -43,7 +52,7 @@ Find `vision.md` under `teams/richi_and_lucag/exercise_one/`. Read it silently b
 Detect the research mode from the invocation prompt:
 
 - **technical** — APIs, integrations, algorithms, data sources, architecture patterns
-- **regulatory** — laws, compliance requirements, disclosure rules relevant to homeowner finance
+- **regulatory** — laws, compliance requirements, disclosure rules
 - **ux-patterns** — precedents from analogous products, interaction models, design research
 - **exploratory** — open-ended topic not fitting the above
 
@@ -60,8 +69,8 @@ Keep to **2–3 questions** targeted at narrowing scope. Generic examples by mod
 2. Are there known constraints (cost, latency, data privacy) to factor in?
 
 **regulatory:**
-1. Which financial activity or product category is in scope?
-2. Which jurisdiction — US federal, specific states, or both?
+1. Which activity or product category is in scope?
+2. Which jurisdiction?
 
 **ux-patterns:**
 1. Which user flow or moment are you trying to improve?
@@ -81,7 +90,7 @@ Spawn all research agents **in the same turn** so they run concurrently. Use `we
 
 For each agent, include:
 - The user's interview answers
-- Product context: *personal finance app for homeowners — surfaces savings opportunities around mortgage, insurance, utilities, maintenance, and subscription creep*
+- Product context quoted directly from the active `vision.md`
 - The specific research question for that agent (not a generic brief)
 
 **Standard agent set by mode:**
@@ -89,7 +98,7 @@ For each agent, include:
 | Mode | Agent 1 | Agent 2 | Agent 3 |
 |---|---|---|---|
 | technical | Deep-dive on primary integration/approach | Alternative approaches and trade-offs | Failure modes and known limitations |
-| regulatory | Federal rules and requirements | State-level variations | Enforcement history / edge cases |
+| regulatory | Federal/national rules and requirements | Sub-jurisdictional variations | Enforcement history / edge cases |
 | ux-patterns | Pattern examples from analogous products | User behavior research / studies | Anti-patterns and failure cases |
 | exploratory | Primary topic depth | Adjacent context | Contrarian / minority view |
 
@@ -107,21 +116,34 @@ Combine agent findings into a single `research.md`. Strict rules:
 
 ---
 
-## Step 6: Save artifact
+## Step 6: Memory Write Transaction
 
-Save to:
+Write order, no skipping:
+
+1. Save `research.md` inside the active session folder resolved from INDEX:
+   `<active-session-folder>/research.md`. If a `research.md` already exists for the active session, propose the new file as `research-<scope-slug>.md` rather than overwriting silently.
+2. Verify the file exists and is non-empty.
+3. Update `memory/project/INDEX.md` — bump the `research` row in canonical artifacts. Refresh `Canonical artifact set complete` and `Last reindex` as appropriate.
+4. Replace `memory/task/state.md` wholesale with the new snapshot (phase = post-research, next action = `/domain`).
+5. Run the Decision Gate. Append qualifying entries to `memory/project/decisions.md`.
+6. Output any glossary candidates as a `## Glossary Proposals` section in the final response. Do not edit `glossary.md`.
+
+If any step after step 1 fails or is skipped, the final response must say:
+> Memory drift possible. Run `/reindex` to reconcile.
+
+---
+
+## Step 7: Decision candidates
+
+End the session with this block:
 
 ```
-exercise_one/YYYY-MM-DD-<scope-slug>/research.md
+Decision candidates from this session:
+1. [candidate] — append: yes/no — reason
+2. [candidate] — append: yes/no — reason
 ```
 
-- Use the same session folder as the grounding `vision.md` if one exists with the same date.
-- Otherwise create a new folder.
-- `<scope-slug>` = 2–4 word kebab-case label (e.g., `plaid-integration`, `escrow-regulations`, `savings-detection-patterns`)
-
-Path is relative to `teams/richi_and_lucag/`.
-
-Tell the user the full path once saved.
+Research output (facts, sources) is not a decision. A candidate qualifies only when the team chose to *act* on what the research surfaced — e.g., "we will integrate via Provider X, not Y" — and that choice forecloses an alternative.
 
 ---
 
@@ -131,7 +153,7 @@ Tell the user the full path once saved.
 # Research: [Topic]
 
 _Date: YYYY-MM-DD | Mode: [technical | regulatory | ux-patterns | exploratory]_
-_Grounded in: [relative path to vision.md, or "no vision file found"]_
+_Grounded in: [relative path to vision.md from INDEX]_
 
 ---
 

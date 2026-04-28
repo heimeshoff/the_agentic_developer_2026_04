@@ -1,16 +1,29 @@
 ---
 name: domain
-description: Strategic DDD domain modeling for the homeowner-fintech personal finance product. Invoke with /domain. Reads a research.md artifact and leads a structured conversation to co-build a domain.md following Domain-Driven Design strategic patterns — core domain identification, subdomain classification, bounded context discovery, context mapping, ubiquitous language, and key aggregates. Use this skill whenever the team needs to translate research insights into a shared domain model before moving to feature planning — even if the user doesn't say "DDD" or "domain model" explicitly.
+description: Strategic DDD domain modeling skill for this team. Invoke with /domain. Reads memory/project/INDEX.md to learn the active project, then grounds in the active research.md artifact. Leads a structured conversation to co-build a domain.md following Domain-Driven Design strategic patterns — core domain identification, subdomain classification, bounded context discovery, context mapping, ubiquitous language, and key aggregates. Emits glossary proposals for accepted ubiquitous-language terms. Use whenever the team needs to translate research insights into a shared domain model before moving to feature planning.
 ---
 
 # Domain Modeling
 
-Leads a structured conversation grounded in a `research.md` artifact to produce `domain.md` — a DDD strategic domain model for the homeowner personal finance product.
+Leads a structured conversation grounded in `research.md` to produce `domain.md` — a DDD strategic domain model for the active project.
+
+## Memory Read Contract
+
+Required reads on entry:
+1. `memory/project/INDEX.md` — canonical pointers + session lifecycle.
+2. `memory/task/state.md` — current phase, active session, blockers.
+3. The active session's `research.md` (resolved from INDEX). Also read the active `vision.md` for product context.
+4. `memory/project/glossary.md` — to avoid proposing terms already accepted.
+
+Rules:
+- Always resolve artifact paths through INDEX. Do not fuzzy-find via `find`.
+- If INDEX is missing or points to a missing file, stop and tell the user to run `/reindex`. Do not silently fall back to globbing.
+- The active session is whichever session has `status: active` in INDEX. Never use date-affinity heuristics.
 
 ## Flow
 
 ```
-LOCATE RESEARCH → FRAME DOMAIN → SUBDOMAINS → BOUNDED CONTEXTS
+RESOLVE RESEARCH → FRAME DOMAIN → SUBDOMAINS → BOUNDED CONTEXTS
   → UBIQUITOUS LANGUAGE → CONTEXT MAP → KEY AGGREGATES → SAVE
 ```
 
@@ -18,20 +31,17 @@ Work through these phases **one at a time**. Complete each phase before opening 
 
 ---
 
-## Step 1: Locate research artifact
+## Step 1: Resolve research artifact
 
-Find all `research.md` files under `teams/richi_and_lucag/exercise_one/`. 
+Resolve the active session's `research.md` via INDEX. Read it before starting the conversation.
 
-- If there is exactly one, use it automatically — tell the user which file you're grounding in.
-- If there are multiple, list them and ask which one to use.
-
-Read the artifact before starting the conversation.
+If INDEX has no research pointer for the active session, stop and tell the user to run `/research` (or `/business-research`) first.
 
 ---
 
 ## Step 2: Frame the domain (opening synthesis)
 
-Synthesize **3–5 key insights** from `research.md` most relevant to domain design — competitor gaps, user pain points, financial patterns. Present them briefly. Then ask a single opening question:
+Synthesize **3–5 key insights** from `research.md` most relevant to domain design — competitor gaps, user pain points, recurring patterns. Present them briefly. Then ask a single opening question:
 
 > "Based on this, what is the core problem this product solves — in your own words?"
 
@@ -47,7 +57,7 @@ Guide the user through classifying the product's subdomains:
 - **Supporting subdomains** — necessary but not the edge; build, don't buy
 - **Generic subdomains** — commodity; buy or use off-the-shelf
 
-Propose candidates drawn from research (e.g., mortgage tracking, savings opportunity detection, expense categorization). Ask the user to validate, redirect, or add. Keep it conversational — one candidate cluster at a time.
+Propose candidates drawn from research and vision. Ask the user to validate, redirect, or add. Keep it conversational — one candidate cluster at a time.
 
 ---
 
@@ -55,9 +65,9 @@ Propose candidates drawn from research (e.g., mortgage tracking, savings opportu
 
 Help the user find natural language and responsibility boundaries.
 
-A useful diagnostic: look for places where the **same word means something different** depending on context. For example, "payment" may mean different things in mortgage management vs. utility billing vs. insurance.
+A useful diagnostic: look for places where the **same word means something different** depending on context.
 
-Ask the user to walk through **one or two core user scenarios** (not features — scenarios, like "a homeowner notices their energy bill spiked and wonders if they're overpaying"). Listen for language shifts and natural seams. Propose bounded context candidates from what you hear; let the user refine.
+Ask the user to walk through **one or two core user scenarios** (not features — scenarios). Listen for language shifts and natural seams. Propose bounded context candidates from what you hear; let the user refine.
 
 ---
 
@@ -69,7 +79,12 @@ Gather these conversationally:
 
 > "Within [Context], when you say [X], what do you mean exactly?"
 
-Preserve the user's language. If they call it "a savings signal" rather than "a savings opportunity", use their term — the ubiquitous language belongs to the domain expert, not the facilitator.
+Preserve the user's language. The ubiquitous language belongs to the domain expert, not the facilitator.
+
+Cross-check each term against `memory/project/glossary.md`:
+- If the term already has an accepted definition that matches: reuse it.
+- If it conflicts: flag the conflict to the user, propose an update, do not silently overwrite.
+- If new: queue it for the `## Glossary Proposals` section in Step 8.
 
 ---
 
@@ -81,29 +96,44 @@ Sketch the relationships between bounded contexts:
 - Where is an **Anti-Corruption Layer** needed to translate between incompatible models?
 - Is anything **Shared Kernel** territory (truly shared model/code between two contexts)?
 
-Stay lightweight — the goal is to surface dependencies and translation points, not to over-engineer.
+Stay lightweight — surface dependencies and translation points, do not over-engineer.
 
 ---
 
 ## Step 7: Key aggregates per context
 
-For each bounded context, identify **1–3 central aggregates**: the "things" that hold the core business rules and invariants. Don't go deep on structure — just name each one and state its primary invariant in one sentence.
+For each bounded context, identify **1–3 central aggregates**: the "things" that hold the core business rules and invariants. Don't go deep on structure — name each one and state its primary invariant in one sentence.
 
 ---
 
-## Step 8: Save artifact
+## Step 8: Memory Write Transaction
 
-Save to:
+Write order, no skipping:
+
+1. Save `domain.md` inside the active session folder resolved from INDEX:
+   `<active-session-folder>/domain.md`. Embed a `## Glossary Proposals` section inside the artifact carrying every new or changed term, with the same shape as the response-level proposals.
+2. Verify the file exists and is non-empty.
+3. Update `memory/project/INDEX.md` — bump the `domain` row in canonical artifacts. Refresh `Canonical artifact set complete` and `Last reindex` as appropriate.
+4. Replace `memory/task/state.md` wholesale with the new snapshot (phase = post-domain, next action = `/tactical-ddd`).
+5. Run the Decision Gate. Append qualifying entries to `memory/project/decisions.md`. Common candidates here: bounded context boundaries, ACL placements, "we treat X and Y as separate contexts because their language differs."
+6. Output the same glossary candidates as a top-level `## Glossary Proposals` section in your final response. Do **not** edit `glossary.md` — proposals are accepted by humans separately.
+
+If any step after step 1 fails or is skipped, the final response must say:
+> Memory drift possible. Run `/reindex` to reconcile.
+
+---
+
+## Step 9: Decision candidates
+
+End the session with this block:
 
 ```
-exercise_one/YYYY-MM-DD-<scope-slug>/domain.md
+Decision candidates from this session:
+1. [candidate] — append: yes/no — reason
+2. [candidate] — append: yes/no — reason
 ```
 
-- Use the **same session folder** as the grounding `research.md` if one exists (same date prefix and slug).
-- If none matches, create a new folder following the convention.
-- `<scope-slug>` = 2–4 word kebab-case label (e.g., `homeowner-core-domain`, `finance-bounded-contexts`).
-
-Tell the user the full path once saved.
+Bounded context boundaries and ACL choices typically qualify. Picking a default term over its synonym does not — that belongs in the glossary, not decisions.
 
 ---
 
@@ -112,7 +142,7 @@ Tell the user the full path once saved.
 Adapt sections to what emerged in conversation. Drop sections with nothing useful; add sections if a clear theme emerged.
 
 ```markdown
-# Domain Model: Homeowner Personal Finance
+# Domain Model: [Active project name]
 
 _Date: YYYY-MM-DD | Grounded in: [relative path to research.md]_
 
@@ -150,11 +180,15 @@ _Date: YYYY-MM-DD | Grounded in: [relative path to research.md]_
 
 ## Context Map
 
-[Describe relationships between bounded contexts: upstream → downstream, ACL boundaries, Shared Kernel if any. Prose or simple table. Flag any places where the team will need an explicit translation layer.]
+[Describe relationships between bounded contexts: upstream → downstream, ACL boundaries, Shared Kernel if any. Prose or simple table.]
+
+## Glossary Proposals
+
+[Candidate terms emitted by this session. Each: term, candidate definition, bounded context, rationale. Mirror this section in the final response so the human can accept them into glossary.md.]
 
 ## Open Modeling Questions
 
-[Unresolved decisions to revisit in /plan. Number them so they can be referenced.]
+[Unresolved decisions to revisit in /tactical-ddd. Number them so they can be referenced.]
 
 1. [Question]
 ```
@@ -163,8 +197,8 @@ _Date: YYYY-MM-DD | Grounded in: [relative path to research.md]_
 
 ## Facilitation principles
 
-- **Lead with synthesis, not interrogation.** Before each phase, share what you've inferred from `research.md` and ask the user to validate — don't ask cold questions they have to answer from scratch.
+- **Lead with synthesis, not interrogation.** Before each phase, share what you've inferred from `research.md` and ask the user to validate.
 - **One thread at a time.** Complete one phase before opening the next. Ask only one question per turn.
 - **Propose, don't just ask.** "I'd suggest bounded contexts around X, Y, Z — does that feel right?" moves faster than "what are the bounded contexts?"
-- **Stay strategic.** If the conversation drifts toward implementation details or specific features, redirect: "Let's hold that for /plan — right now we're mapping the domain."
+- **Stay strategic.** If the conversation drifts toward implementation, redirect: "Let's hold that for /tactical-ddd."
 - **Embrace ambiguity.** It is correct for some boundaries to be unclear at this stage. Capture those as Open Modeling Questions rather than forcing premature resolution.
