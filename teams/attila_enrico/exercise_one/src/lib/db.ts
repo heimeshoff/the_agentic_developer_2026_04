@@ -3,7 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 
-const TransactionSchema = z.object({
+export const TransactionSchema = z.object({
   id: z.string(),
   userId: z.string(),
   kind: z.enum(["expense", "income"]),
@@ -11,6 +11,8 @@ const TransactionSchema = z.object({
   title: z.string().min(1).max(120),
   timestamp: z.string(),
   category: z.string(),
+  deletedAt: z.string().nullable().optional(),
+  source: z.enum(["demo", "user"]).default("user"),
 });
 
 const UserSchema = z.object({
@@ -36,7 +38,7 @@ function getDbPath(): string {
 
 // Single in-process mutex — serializes overlapping Server Action calls.
 let chain: Promise<unknown> = Promise.resolve();
-function withLock<T>(fn: () => Promise<T>): Promise<T> {
+export function withLock<T>(fn: () => Promise<T>): Promise<T> {
   const next = chain.then(fn, fn);
   chain = next.catch(() => {});
   return next;
@@ -103,7 +105,7 @@ export async function createUser(input: { email: string; passwordHash: string; c
 export async function listTransactionsByUser(userId: string): Promise<Transaction[]> {
   const db = await readDb();
   return db.transactions
-    .filter((t) => t.userId === userId)
+    .filter((t) => t.userId === userId && t.deletedAt == null)
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 }
 
@@ -118,4 +120,81 @@ export async function addTransaction(tx: Transaction): Promise<Transaction> {
     await fs.rename(tmp, p);
     return tx;
   });
+}
+
+/**
+ * Returns the transaction only if it exists, belongs to `userId`, and is NOT
+ * soft-deleted. Returns `null` in every other case. Restore-path callers (which
+ * need to find soft-deleted rows) must not use this helper.
+ */
+export function findOwnedTransaction(
+  db: DB,
+  userId: string,
+  id: string,
+): Transaction | null {
+  const tx = db.transactions.find((t) => t.id === id);
+  if (!tx) return null;
+  if (tx.userId !== userId) return null;
+  if (tx.deletedAt != null) return null;
+  return tx;
+}
+
+export async function updateTransaction(tx: Transaction): Promise<void> {
+  await withLock(async () => {
+    const db = await readDb();
+    const idx = db.transactions.findIndex((t) => t.id === tx.id);
+    if (idx === -1) return;
+    const next: DB = {
+      ...db,
+      transactions: db.transactions.map((t, i) => (i === idx ? tx : t)),
+    };
+    const p = getDbPath();
+    await fs.mkdir(path.dirname(p), { recursive: true });
+    const tmp = `${p}.tmp`;
+    await fs.writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
+    await fs.rename(tmp, p);
+  });
+}
+
+export async function softDeleteTransaction(id: string, at: string): Promise<void> {
+  await withLock(async () => {
+    const db = await readDb();
+    const idx = db.transactions.findIndex((t) => t.id === id);
+    if (idx === -1) return;
+    const next: DB = {
+      ...db,
+      transactions: db.transactions.map((t, i) =>
+        i === idx ? { ...t, deletedAt: at } : t,
+      ),
+    };
+    const p = getDbPath();
+    await fs.mkdir(path.dirname(p), { recursive: true });
+    const tmp = `${p}.tmp`;
+    await fs.writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
+    await fs.rename(tmp, p);
+  });
+}
+
+export async function restoreTransaction(id: string): Promise<void> {
+  await withLock(async () => {
+    const db = await readDb();
+    const idx = db.transactions.findIndex((t) => t.id === id);
+    if (idx === -1) return;
+    const next: DB = {
+      ...db,
+      transactions: db.transactions.map((t, i) =>
+        i === idx ? { ...t, deletedAt: null } : t,
+      ),
+    };
+    const p = getDbPath();
+    await fs.mkdir(path.dirname(p), { recursive: true });
+    const tmp = `${p}.tmp`;
+    await fs.writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
+    await fs.rename(tmp, p);
+  });
+}
+
+export async function hasDemoTransactions(userId: string): Promise<boolean> {
+  const transactions = await listTransactionsByUser(userId);
+  return transactions.some((t) => t.source === "demo");
 }
