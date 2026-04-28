@@ -1,6 +1,6 @@
 ---
 name: feature
-description: Scaffold a feature slice (Gherkin spec + React + TypeScript + localStorage) for team duePi's personal finance & budgeting app from an entry in `teams/duePi/exercise_one/features.md`. Trigger whenever the user runs `/feature`, asks to "build the next feature", "implement track-expenses", "turn this markdown spec into code", "scaffold a feature", or otherwise wants to move an item in `features.md` from pending to implemented. Also trigger when the user adds a new feature description in discussion and asks what's next to build. Use even when `/feature` is not typed verbatim, as long as the intent is to realise a `features.md` entry in the duePi app.
+description: Refine and scaffold a feature slice (brainstorm → Gherkin spec → React + TypeScript + localStorage) for team duePi's personal finance & budgeting app from an entry in `teams/duePi/exercise_one/features.md`. Trigger whenever the user runs `/feature`, asks to "build the next feature", "implement track-expenses", "turn this markdown spec into code", "scaffold a feature", "refine a feature before building", or otherwise wants to move an item in `features.md` from pending to implemented. Also trigger when the user adds a new feature description in discussion and asks what's next to build. Use even when `/feature` is not typed verbatim, as long as the intent is to realise a `features.md` entry in the duePi app.
 ---
 
 # /feature — build a duePi feature slice from features.md
@@ -38,13 +38,21 @@ Status transitions by swapping the checkbox: `[ ]` → `[~]` → `[x]`. Slugs ar
    - Slug given → match case-insensitively. No match → list slugs, ask.
    - No slug given → list `[ ]` pending features, ask which to build.
 3. **Sanity check the app scaffold.** If `teams/duePi/exercise_one/app/package.json` doesn't exist, stop: we can't scaffold into a missing React app. Offer to bootstrap it first with `npm create vite@latest app -- --template react-ts` inside `teams/duePi/exercise_one/`, then resume.
-4. **Restate the feature in one sentence and flag anything ambiguous.** If the entry is terse, propose the scenarios you intend to write before coding. Skip this if the feature is obvious.
-5. **Flip status to in-progress** (`[ ]` → `[~]`) in `features.md`.
-6. **Write the Gherkin spec first.** The scenarios anchor the implementation — when the component and storage are in doubt, go back to the `.feature` file.
-7. **Write `types.ts` → `storage.ts` → `<Name>.tsx` → `index.ts`**, in that order. Dependencies flow downward.
-8. **Wire the component into the app** so it's reachable (update `src/App.tsx` or the current router/entry point). A feature that isn't rendered isn't done.
-9. **Flip status to done** (`[~]` → `[x]`).
-10. **Report** what was created, where, and suggest the next pending feature — or ask for feedback to refine this one.
+4. **Brainstorm & refine the feature with the user.** This is an interactive step — do **not** skip to code, even if the feature looks obvious. The one-line entry in `features.md` is almost never enough to build from. Produce:
+   - **Refined description** — 2–4 sentences capturing the user value *and* the mechanics. Go beyond the one-liner.
+   - **In scope** — 3–6 concrete bullets of what this slice will include. If a bullet feels fuzzy, sharpen it or drop it.
+   - **Out of scope** — bullets of what this slice will explicitly NOT include, even if tempting. Tag each as either `(later)` — parked as a follow-up feature — or `(never)` — conscious product decision.
+   - **Gherkin scenarios (draft)** — 3–6 full `Scenario:` blocks with concrete `Given/When/Then` steps, real numbers, and realistic categories. These *are* the acceptance criteria in executable-example form. Do not show bullet-point summaries as a substitute — the actual `Given/When/Then` is what pins down behaviour, and it's what the user needs to validate. Include at minimum: the golden path, a persistence scenario, the main edge case from `features.md`, and any constraint surfaced during refinement (validation rules, allowed values, empty state).
+   - **Open questions** — anything ambiguous. Ask the user; do not guess on their behalf.
+
+   Present **all of the above**, including the full Gherkin scenario drafts, back to the user in one compact message, and **pause for confirmation or edits** before moving on. The user must see and validate the concrete scenarios before any code is written — this is the single most important checkpoint in the workflow. Any `(later)` out-of-scope items must be appended to `features.md` as new `[ ]` entries in the same step, so nothing is lost. The confirmed scenarios are used verbatim in step 7.
+5. **Flip status to in-progress** (`[ ]` → `[~]`) in `features.md`. Only after refinement *and* the Gherkin scenarios are confirmed — the checkbox flipping marks committed scope.
+6. **Check the slice is still one slice.** If the refined scope reads like an epic (2+ screens, unrelated sub-flows), jump to the "When the feature is bigger than one slice" section below — don't force it.
+7. **Write the Gherkin spec file** using the scenarios confirmed in step 4 **verbatim**, with the refinement captured as the comment header (see template below). Do not invent new scenarios here — if a gap becomes obvious while coding, loop back to the user rather than quietly adding scenarios they never saw.
+8. **Write `types.ts` → `storage.ts` → `<Name>.tsx` → `index.ts`**, in that order. Dependencies flow downward.
+9. **Wire the component into the app** so it's reachable (update `src/App.tsx` or the current router/entry point). A feature that isn't rendered isn't done.
+10. **Flip status to done** (`[~]` → `[x]`).
+11. **Report** what was created, where, and suggest the next pending feature — or ask for feedback to refine this one.
 
 ## Output layout
 
@@ -63,9 +71,27 @@ If a feature has more than one screen, add more `.tsx` files in the same folder 
 
 ## Template: `<slug>.feature`
 
-Write one `Feature:` block with a short narrative and a handful of `Scenario:`s covering: the golden path, at least one persistence scenario (reload / reopen browser), and the main edge cases the user called out in `features.md`. Use realistic numbers and the seeded category list from `CLAUDE.md` (`hobbies`, `food`, `rents`, `transport`, `insurance`, `salary`).
+Start with a comment header that captures the refinement from step 4 (description, in/out of scope, acceptance criteria). Then one `Feature:` block with a short narrative, and one `Scenario:` per acceptance criterion. Cover at minimum: the golden path, at least one persistence scenario (reload / reopen browser), and the main edge cases the user called out during refinement. Use realistic numbers and the seeded category list from `CLAUDE.md` (`hobbies`, `food`, `rents`, `transport`, `insurance`, `salary`).
 
 ```gherkin
+# Refined: Let the user record individual expense entries (amount, date,
+# category from the seeded list) and see them listed chronologically, so
+# they can answer "where did my money go this month?".
+#
+# In scope:
+#   - Record a single expense (amount, date, category)
+#   - Show a chronological list of recorded expenses
+#   - Persist expenses across reloads via localStorage
+#
+# Out of scope (later):
+#   - Editing or deleting an expense
+#   - Filtering / sorting the list
+#   - Monthly totals view
+# Out of scope (never, for this app):
+#   - Bank integrations, multi-user sync
+#
+# Acceptance criteria are encoded one-to-one as the Scenarios below.
+
 Feature: Track expenses
   As a duePi user
   I want to record expenses with amount, date, and category
