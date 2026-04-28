@@ -2,21 +2,151 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Finance overview</title>
+    <title>🌟 Finance Overview !!! 🌟</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; color: #222; }
-        h1 { margin-bottom: 0.25rem; }
-        .subtitle { color: #666; margin-top: 0; }
-        .debt { font-size: 2.5rem; font-weight: 600; color: #c0392b; margin: 0.25rem 0 0; }
-        .label { color: #666; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; margin-top: 2rem; }
+        html, body {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            background-color: #FFD1DC;
+            background-image:
+                radial-gradient(circle at 20% 30%, #FFF 2px, transparent 3px),
+                radial-gradient(circle at 70% 80%, #FFF 2px, transparent 3px),
+                radial-gradient(circle at 40% 70%, #FFFF00 2px, transparent 3px);
+            background-size: 60px 60px, 80px 80px, 100px 100px;
+            margin: 0;
+            padding: 0;
+            color: #000;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin: 1rem auto;
+        }
+        h1 {
+            background: linear-gradient(90deg, #FF1493, #FFFF00, #00FFFF, #FF1493);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0.5rem 0;
+        }
+        marquee {
+            background: #000;
+            color: #00FF00;
+            padding: 0.5rem;
+            border: 3px ridge #FF1493;
+            font-size: 1.2rem;
+            width: 90%;
+        }
+        .blink {
+            animation: blink 1s steps(2, start) infinite;
+            color: #FF1493;
+            font-weight: bold;
+        }
+        @keyframes blink { to { visibility: hidden; } }
+        .construction {
+            background: repeating-linear-gradient(
+                45deg, #000 0 20px, #FFFF00 20px 40px
+            );
+            color: #000;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            border: 4px ridge #FF1493;
+            text-shadow: 1px 1px 0 #FFF;
+        }
+        .counter {
+            background: #000;
+            color: #FF0000;
+            font-family: "Courier New", monospace;
+            padding: 0.5rem 1rem;
+            border: 3px inset #888;
+            letter-spacing: 4px;
+            font-size: 1.4rem;
+        }
+        hr {
+            border: none;
+            height: 6px;
+            background: linear-gradient(90deg, #FF1493, #00FFFF, #FFFF00, #00FF00, #FF1493);
+            width: 80%;
+        }
+        .debt-box {
+            background: #FFFF00;
+            border: 6px ridge #FF1493;
+            padding: 1.5rem 2rem;
+            box-shadow: 6px 6px 0 #000;
+        }
+        .debt {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #c0392b;
+            text-shadow: 2px 2px 0 #FFF, 4px 4px 0 #000;
+            margin: 0.25rem 0;
+        }
+        .label {
+            color: #FF1493;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        .subtitle {
+            color: #0000EE;
+            font-size: 1.1rem;
+            margin: 0.25rem 0 1rem;
+        }
+        .webring {
+            font-size: 0.85rem;
+            color: #0000EE;
+            margin-top: 2rem;
+        }
+        a { color: #0000EE; text-decoration: underline; }
+        a:visited { color: #800080; }
     </style>
 </head>
 <body>
-<h1>Finance overview</h1>
-<p class="subtitle">Team boni-luca</p>
+<marquee behavior="scroll" direction="left" scrollamount="8">
+    ✨ WELCOME TO THE TEAM BONI-LUCA FINANCE TRACKER !!! ✨ PAY DOWN THAT DEBT !!! ✨ THANKS FOR VISITING !!! ✨
+</marquee>
 
-<p class="label">Current debt</p>
-<p class="debt"
-   th:text="|&euro; ${#numbers.formatDecimal(debt.balance, 1, 'COMMA', 2, 'POINT')}|">&euro; 0.00</p>
+<div class="construction">🚧 UNDER CONSTRUCTION 🚧</div>
+
+<h1>🌟 Finance Overview !!! 🌟</h1>
+<p class="subtitle">★ Team boni-luca ★ est. 2026 ★</p>
+
+<hr>
+
+<div class="debt-box">
+    <p class="label"><span class="blink">!!!</span> Current Debt <span class="blink">!!!</span></p>
+    <p class="debt"
+       th:text="|&euro; ${#numbers.formatDecimal(debt.balance, 1, 'COMMA', 2, 'POINT')}|">&euro; 0.00</p>
+    <p class="label">Origin: Pokémon Cards 🃏</p>
+</div>
+
+<hr>
+
+<div>
+    <p>You are visitor number:</p>
+    <div class="counter">000042</div>
+</div>
+
+<hr>
+
+<div class="webring">
+    Best viewed in Netscape Navigator 4.0 at 800×600 •
+    <a href="#">← prev</a> | <a href="#">random</a> | <a href="#">next →</a>
+</div>
 </body>
 </html>

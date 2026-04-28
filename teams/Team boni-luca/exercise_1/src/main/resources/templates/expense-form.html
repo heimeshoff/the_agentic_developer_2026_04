@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>🌟 Record Expense !!! 🌟</title>
+    <style>
+        html, body {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            background-color: #FFD1DC;
+            background-image:
+                radial-gradient(circle at 20% 30%, #FFF 2px, transparent 3px),
+                radial-gradient(circle at 70% 80%, #FFF 2px, transparent 3px),
+                radial-gradient(circle at 40% 70%, #FFFF00 2px, transparent 3px);
+            background-size: 60px 60px, 80px 80px, 100px 100px;
+            margin: 0;
+            padding: 0;
+            color: #000;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        h1 {
+            background: linear-gradient(90deg, #FF1493, #FFFF00, #00FFFF, #FF1493);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0.5rem 0;
+        }
+        .form-box {
+            background: #FFFF00;
+            border: 6px ridge #FF1493;
+            padding: 1.5rem 2rem;
+            box-shadow: 6px 6px 0 #000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 320px;
+        }
+        label {
+            color: #FF1493;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+        input, select, textarea {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            font-size: 1rem;
+            padding: 0.4rem;
+            border: 3px inset #888;
+            background: #FFF;
+        }
+        textarea { resize: vertical; }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        button {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            background: #00FF00;
+            border: 4px ridge #FF1493;
+            padding: 0.6rem 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000;
+        }
+        button:hover { background: #7CFC00; }
+        a { color: #0000EE; text-decoration: underline; }
+        a:visited { color: #800080; }
+        .error {
+            background: #FFF;
+            border: 3px dashed #c0392b;
+            color: #c0392b;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+        }
+        .subtitle {
+            color: #0000EE;
+            font-size: 1rem;
+            margin: 0.25rem 0 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🌟 Record Expense !!! 🌟</h1>
+<p class="subtitle">★ Log an outflow against the debt ★</p>
+
+<p class="error" th:if="${error}" th:text="${error}"></p>
+
+<form method="post" action="/expenses" class="form-box">
+    <label for="amount">Amount (€)</label>
+    <input id="amount" type="number" step="0.01" min="0.01" name="amount"
+           th:value="${form['amount']}" required>
+
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+        <option th:each="cat : ${categories}"
+                th:value="${cat.name()}"
+                th:text="${cat.name()}"
+                th:selected="${form['category'] != null and form['category'] == cat.name()}"></option>
+    </select>
+
+    <label for="date">Date</label>
+    <input id="date" type="date" name="date"
+           th:value="${form['date'] != null ? form['date'] : #temporals.format(today, 'yyyy-MM-dd')}"
+           required>
+
+    <label for="description">Description (optional)</label>
+    <textarea id="description" name="description" rows="2"
+              th:text="${form['description']}"></textarea>
+
+    <div class="actions">
+        <a href="/">← back to overview</a>
+        <button type="submit">Save !!!</button>
+    </div>
+</form>
+
+</body>
+</html>

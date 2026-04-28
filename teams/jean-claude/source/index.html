@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Participant Portal — Debt Recovery Program</title>
+  <link rel="stylesheet" href="styles/participant-portal.css" />
+</head>
+<body>
+
+  <header class="portal-header">
+    <p class="portal-header__program">Debt Recovery Program</p>
+    <h1 class="portal-header__title">Participant Portal</h1>
+  </header>
+
+  <section class="portal-section">
+    <div class="portal-section__header">
+      <h2 class="portal-section__title">Income</h2>
+      <span class="portal-section__subtitle">What comes in</span>
+    </div>
+
+    <table class="income-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Frequency</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="income-entries">
+      </tbody>
+    </table>
+
+    <div class="income-total">
+      <span class="income-total__label">Total Income</span>
+      <span class="income-total__amount" id="income-total">—</span>
+    </div>
+  </section>
+
+  <section class="portal-section">
+    <div class="portal-section__header">
+      <h2 class="portal-section__title">Drains</h2>
+      <span class="portal-section__subtitle">What leaves every period</span>
+    </div>
+
+    <table class="drain-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Frequency</th>
+          <th>Amount</th>
+          <th>Monthly Equivalent</th>
+        </tr>
+      </thead>
+      <tbody id="drain-entries">
+      </tbody>
+    </table>
+
+    <div class="drain-total">
+      <span class="drain-total__label">Total Monthly Drains</span>
+      <span class="drain-total__amount" id="drain-total">—</span>
+    </div>
+  </section>
+
+  <script src="scripts/income.js"></script>
+  <script src="scripts/drains.js"></script>
+</body>
+</html>
