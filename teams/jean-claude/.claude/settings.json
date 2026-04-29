@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/yoann/sources/the_agentic_developer_2026_04/teams/jean-claude/.claude/hooks/load-memory.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/yoann/sources/the_agentic_developer_2026_04/teams/jean-claude/.claude/hooks/load-memory.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

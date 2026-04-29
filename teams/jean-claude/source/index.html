@@ -63,7 +63,40 @@
     </div>
   </section>
 
+  <section class="portal-section">
+    <div class="portal-section__header">
+      <h2 class="portal-section__title">Obligations</h2>
+      <span class="portal-section__subtitle">What you owe, and what it costs each month</span>
+    </div>
+
+    <table class="obligation-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Kind</th>
+          <th>Outstanding Balance</th>
+          <th>Interest Rate</th>
+          <th>Monthly Payment</th>
+        </tr>
+      </thead>
+      <tbody id="obligation-entries">
+      </tbody>
+    </table>
+
+    <div class="obligation-totals">
+      <div class="obligation-total">
+        <span class="obligation-total__label">Total Outstanding Balance</span>
+        <span class="obligation-total__amount" id="obligation-balance-total">—</span>
+      </div>
+      <div class="obligation-total obligation-total--monthly">
+        <span class="obligation-total__label">Total Monthly Payments</span>
+        <span class="obligation-total__amount" id="obligation-monthly-total">—</span>
+      </div>
+    </div>
+  </section>
+
   <script src="scripts/income.js"></script>
   <script src="scripts/drains.js"></script>
+  <script src="scripts/obligations.js"></script>
 </body>
 </html>

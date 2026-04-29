@@ -17,6 +17,8 @@ Millions of people are deep in debt not because they are irresponsible, but beca
 | Recovery Plan | The participant's structured path from current financial state toward debt-free. |
 | Debt-Free Date | The projected date on which all obligations are settled, based on current behaviour. |
 | Snapshot | A point-in-time summary of a participant's financial picture, used by counselors to assess progress. |
+| Conversation | The persistent in-app exchange between exactly one Counselor and one Participant. |
+| Message | A single, append-only communication within a Conversation, authored by either the Counselor or the Participant. |
 
 ## Bounded Contexts
 
@@ -28,6 +30,9 @@ The structured path forward. Given what the participant earns and spends, what i
 
 **Counselor Dashboard**
 The counselor's view across their caseload. Shows snapshots of participant progress, flags participants who are stalled or at risk, and surfaces when human intervention is needed. This context owns oversight and accountability.
+
+**Conversations**
+The communication surface between Counselor and Participant. Owns the persistent in-app exchange, message history, read state, and unread-count surfacing. This context owns the human relationship that makes accountability real — counselor–participant interaction happens in-app, not offline.
 
 ## Actors
 
@@ -45,6 +50,7 @@ Manages a caseload of participants. Needs to quickly identify who is progressing
 - Savings and investment opportunity recommendations based on available funds
 - Debt payoff progress and projected debt-free date
 - Counselor view of participant snapshots and progress signals
+- In-app messaging between Counselor and Participant (persistent conversation, read state, unread surfacing)
 
 ## Out of Scope
 - Executing financial transactions or payments
@@ -58,7 +64,6 @@ Manages a caseload of participants. Needs to quickly identify who is progressing
 We bet that **seeing is changing**. The participant does not lack willpower — they lack visibility. The moment they can see the full picture of where their money goes, the path forward becomes legible. The counselor relationship makes accountability real and human. This application does not lecture or shame. It illuminates, projects, and supports. Every design decision should ask: does this help the participant see more clearly?
 
 ## Open Questions
-- What is the cadence of counselor-participant interaction — does the app facilitate communication, or is that entirely offline?
 - Are there program milestones or thresholds that trigger automatic counselor alerts?
 - How is income handled when it is irregular or variable month to month?
 - Does the recovery plan recommend specific debt payoff strategies (avalanche, snowball) or let counselors prescribe that?
