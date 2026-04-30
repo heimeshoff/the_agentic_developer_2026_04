@@ -1,11 +1,25 @@
 import { requireSession } from "@/lib/auth";
 import { listTransactionsByUser } from "@/lib/db";
 import { formatAmount } from "@/lib/currencies";
+import { parseChartParams } from "@/lib/chartUrlState";
+import {
+  bucketByMonth,
+  groupByCategory,
+  inRange,
+  resolvePresetRange,
+} from "@/lib/aggregations";
 import { DemoDataButton } from "./DemoDataButton";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionsList } from "./TransactionsList";
+import { DashboardCharts } from "./DashboardCharts";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const { user } = await requireSession();
   const transactions = await listTransactionsByUser(user.id);
   const balance = transactions.reduce(
@@ -13,6 +27,32 @@ export default async function DashboardPage() {
     0,
   );
   const hasDemoData = transactions.some((t) => t.source === "demo");
+
+  const resolvedSearchParams = await searchParams;
+  const params = parseChartParams(resolvedSearchParams);
+
+  const { from, to } =
+    params.range === "custom"
+      ? { from: params.from, to: params.to }
+      : resolvePresetRange(params.range, new Date());
+
+  const rangeFiltered = transactions.filter((tx) => inRange(tx, from, to));
+
+  const monthly = bucketByMonth(rangeFiltered);
+  const byCategory = groupByCategory(rangeFiltered, "expense");
+
+  const listFiltered = rangeFiltered.filter((tx) => {
+    if (params.category !== undefined && tx.category !== params.category) {
+      return false;
+    }
+    if (
+      params.month !== undefined &&
+      tx.timestamp.slice(0, 7) !== params.month
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
@@ -29,7 +69,21 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <TransactionsList transactions={transactions} currency={user.currency} />
+        <DashboardCharts
+          params={params}
+          monthly={monthly}
+          byCategory={byCategory}
+          currency={user.currency}
+        />
+
+        <TransactionsList
+          transactions={listFiltered}
+          currency={user.currency}
+          activeFilters={{
+            category: params.category,
+            month: params.month,
+          }}
+        />
       </section>
     </div>
   );

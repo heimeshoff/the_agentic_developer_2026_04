@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import type { Transaction } from "@/lib/db";
 import { formatAmount } from "@/lib/currencies";
 import {
@@ -11,9 +12,47 @@ import { EditTransactionModal } from "./EditTransactionModal";
 import { UndoToast } from "./UndoToast";
 import { formatDate } from "./formatDate";
 
+interface ActiveFilters {
+  category?: string;
+  month?: string;
+}
+
 interface TransactionsListProps {
   transactions: Transaction[];
   currency: string;
+  activeFilters?: ActiveFilters;
+}
+
+function FilteredByChip({
+  filters,
+}: {
+  filters: ActiveFilters;
+}): React.ReactElement | null {
+  const parts: string[] = [];
+  if (filters.category != null && filters.category !== "") {
+    parts.push(filters.category);
+  }
+  if (filters.month != null && filters.month !== "") {
+    parts.push(filters.month);
+  }
+
+  if (parts.length === 0) return null;
+
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
+        <span>
+          Filtered by: <span className="text-text">{parts.join(" · ")}</span>
+        </span>
+        <Link
+          href="/app"
+          className="text-text underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-text rounded"
+        >
+          Clear
+        </Link>
+      </span>
+    </div>
+  );
 }
 
 interface ToastState {
@@ -76,7 +115,12 @@ function removeId(set: Set<string>, id: string): Set<string> {
 export function TransactionsList({
   transactions,
   currency,
+  activeFilters,
 }: TransactionsListProps): React.ReactElement {
+  const hasActiveFilters =
+    activeFilters != null &&
+    ((activeFilters.category != null && activeFilters.category !== "") ||
+      (activeFilters.month != null && activeFilters.month !== ""));
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -143,6 +187,9 @@ export function TransactionsList({
   if (transactions.length === 0 && visible.length === 0) {
     return (
       <>
+        {hasActiveFilters && activeFilters != null && (
+          <FilteredByChip filters={activeFilters} />
+        )}
         {inlineError != null && (
           <p
             role="status"
@@ -169,6 +216,9 @@ export function TransactionsList({
 
   return (
     <>
+      {hasActiveFilters && activeFilters != null && (
+        <FilteredByChip filters={activeFilters} />
+      )}
       {inlineError != null && (
         <p
           role="status"

@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# Project memory
+
+Durable decision log + feature roadmap live under `.claude/memory/`. The pointer index is auto-loaded below; follow links from there. Conventions are documented in `.claude/memory/README.md` — read it before adding ADRs or roadmap rows.
+
+@.claude/memory/INDEX.md
+
 # Personal Finance App
 This is a personal financial web app that helps users track their spendings and incomes. The users will register to this app by giving their e-mail addresses and passwords.
 
